@@ -106,7 +106,7 @@ private or local network addresses.
 See [the detailed roadmap](./docs/roadmap.md) for design decisions, compatibility
 scope, and the planned cache architecture.
 
-- [ ] Require Node.js 22 or newer and test maintained Node.js versions in CI.
+- [x] Require Node.js 22 or newer and test maintained Node.js versions in CI.
 - [ ] Add useful `remark-link-card-plus`-compatible settings without changing
       the standalone bare-URL rule.
 - [ ] Replace separate negative thumbnail settings with
