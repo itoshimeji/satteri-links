@@ -40,6 +40,7 @@ describe("extractMetadata", () => {
 
     expect(metadata.title).toBe("OG title");
     expect(metadata.description).toBe("Twitter description");
+    expect(metadata).not.toHaveProperty("url");
   });
 
   test("resolves relative image URLs against the page URL", () => {
