@@ -31,12 +31,12 @@ Explicit Markdown links, inline URLs, and URLs inside lists are left alone.
 
 ## Use with Astro
 
-Install and configure [`@astrojs/markdown-satteri`](https://github.com/withastro/markdown-satteri),
+Install and configure `@astrojs/markdown-satteri`,
 then add the plugin to `astro.config.mjs`:
 
 ```js
-import { satteri } from "@astrojs/markdown-satteri";
 import { defineConfig } from "astro/config";
+import { satteri } from "@astrojs/markdown-satteri";
 import { satteriLinkCard } from "satteri-link-card";
 
 export default defineConfig({
