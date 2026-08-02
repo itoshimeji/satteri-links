@@ -12,13 +12,25 @@ import type {
 const DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
 const DEFAULT_TIMEOUT = 5000;
 
+// export type ResolvedSatteriLinkCardOptions = {
+//   cache: LinkCardCacheOptions | false;
+//   fetch: typeof globalThis.fetch;
+//   maxResponseBytes: number;
+//   timeout: number;
+//   shortenUrl: boolean;
+//   thumbnail: false | ThumbnailOptions;
+//   ignoreExtensions: string[];
+//   openInNewTab: boolean;
+// };
+
 function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCardOptions {
   return {
     cache: options.cache ?? {},
     fetch: options.fetch ?? globalThis.fetch,
     maxResponseBytes: options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES,
-    openInNewTab: options.openInNewTab ?? true,
     timeout: options.timeout ?? DEFAULT_TIMEOUT,
+    shortenUrl: options.shortenUrl ?? true,
+    openInNewTab: options.openInNewTab ?? true,
   };
 }
 
@@ -80,7 +92,10 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
         const metadata = await resolveMetadata(url);
         if (metadata) {
           // Returning a HAST node replaces the original <p> in the output tree.
-          return renderLinkCard(metadata, resolvedOptions.openInNewTab);
+          return renderLinkCard(metadata, {
+            shortenUrl: resolvedOptions.shortenUrl,
+            openInNewTab: resolvedOptions.openInNewTab,
+          });
         }
       },
     },

@@ -16,7 +16,15 @@ function element(
   return { children, properties, tagName, type: "element" };
 }
 
-export function renderLinkCard(metadata: LinkMetadata, openInNewTab = true): HastElement {
+type renderLinkCardOptions = {
+  shortenUrl: boolean;
+  openInNewTab: boolean;
+};
+
+export function renderLinkCard(
+  metadata: LinkMetadata,
+  options: renderLinkCardOptions,
+): HastElement {
   const url = new URL(metadata.url);
   // Build HAST nodes instead of interpolating raw HTML. Sätteri's serializer
   // then escapes metadata text and attributes as part of normal HTML output.
@@ -29,7 +37,9 @@ export function renderLinkCard(metadata: LinkMetadata, openInNewTab = true): Has
           ]),
         ]
       : []),
-    element("span", { className: ["satteri-link-card__host"] }, [text(url.hostname)]),
+    element("span", { className: ["satteri-link-card__host"] }, [
+      text(options.shortenUrl ? url.hostname : url.href),
+    ]),
   ]);
 
   return element(
@@ -37,7 +47,7 @@ export function renderLinkCard(metadata: LinkMetadata, openInNewTab = true): Has
     {
       className: ["satteri-link-card"],
       href: metadata.url,
-      ...(openInNewTab ? { rel: ["noopener", "noreferrer"], target: "_blank" } : {}),
+      ...(options.openInNewTab ? { rel: ["noopener", "noreferrer"], target: "_blank" } : {}),
     },
     [
       body,

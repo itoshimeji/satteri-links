@@ -10,18 +10,21 @@ export type LinkCardCacheOptions = {
   maxAge?: number | false;
 };
 
+// todo: image cache, thumbnail, ignoreExtensions, favicon, ogTransformer
 export type SatteriLinkCardOptions = {
   cache?: LinkCardCacheOptions | false;
   fetch?: typeof globalThis.fetch;
   maxResponseBytes?: number;
-  openInNewTab?: boolean;
   timeout?: number;
+  shortenUrl?: boolean;
+  openInNewTab?: boolean;
 };
 
 export type ResolvedSatteriLinkCardOptions = {
   cache: LinkCardCacheOptions | false;
   fetch: typeof globalThis.fetch;
   maxResponseBytes: number;
-  openInNewTab: boolean;
   timeout: number;
+  shortenUrl: boolean;
+  openInNewTab: boolean;
 };

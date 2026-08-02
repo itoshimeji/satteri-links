@@ -3,12 +3,15 @@ import { renderLinkCard } from "./render.ts";
 
 describe("renderLinkCard", () => {
   test("renders all card fields with stable class names", () => {
-    const card = renderLinkCard({
-      url: "https://www.example.com/article",
-      title: "Example title",
-      description: "Example description",
-      image: "https://cdn.example.com/card.png",
-    });
+    const card = renderLinkCard(
+      {
+        url: "https://www.example.com/article",
+        title: "Example title",
+        description: "Example description",
+        image: "https://cdn.example.com/card.png",
+      },
+      { shortenUrl: true, openInNewTab: true },
+    );
 
     expect(card.tagName).toBe("a");
     expect(card.properties).toMatchObject({
@@ -51,8 +54,31 @@ describe("renderLinkCard", () => {
     ]);
   });
 
+  test("renders the full URL when shortenUrl is false", () => {
+    const card = renderLinkCard(
+      { url: "https://example.com/articles/hello?lang=ja#summary", title: "Example" },
+      { shortenUrl: false, openInNewTab: true },
+    );
+
+    expect(card.children).toEqual([
+      expect.objectContaining({
+        children: expect.arrayContaining([
+          expect.objectContaining({
+            properties: { className: ["satteri-link-card__host"] },
+            children: [
+              { type: "text", value: "https://example.com/articles/hello?lang=ja#summary" },
+            ],
+          }),
+        ]),
+      }),
+    ]);
+  });
+
   test("omits optional fields and new-tab attributes when disabled", () => {
-    const card = renderLinkCard({ url: "https://example.com/", title: "Example" }, false);
+    const card = renderLinkCard(
+      { url: "https://example.com/", title: "Example" },
+      { shortenUrl: true, openInNewTab: false },
+    );
 
     expect(card.properties).not.toHaveProperty("target");
     expect(card.properties).not.toHaveProperty("rel");
