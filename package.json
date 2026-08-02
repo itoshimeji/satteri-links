@@ -1,23 +1,39 @@
 {
   "name": "satteri-link-card",
-  "version": "0.0.0",
-  "description": "A starter for creating a TypeScript package.",
-  "homepage": "https://github.com/author/library#readme",
+  "version": "0.1.0",
+  "description": "Build-time link cards for Sätteri Markdown.",
+  "keywords": [
+    "astro",
+    "link-card",
+    "markdown",
+    "open-graph",
+    "satteri"
+  ],
+  "homepage": "https://github.com/ItoShimeji/satteri-link-card#readme",
   "bugs": {
-    "url": "https://github.com/author/library/issues"
+    "url": "https://github.com/ItoShimeji/satteri-link-card/issues"
   },
   "license": "MIT",
-  "author": "Author Name <author.name@mail.com>",
+  "author": "ItoShimeji",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/author/library.git"
+    "url": "git+https://github.com/ItoShimeji/satteri-link-card.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "preset.css"
   ],
   "type": "module",
+  "sideEffects": [
+    "./preset.css"
+  ],
+  "types": "./dist/index.d.mts",
   "exports": {
-    ".": "./dist/index.mjs",
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./preset.css": "./preset.css",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -28,15 +44,22 @@
     "dev": "vp pack --watch",
     "test": "vp test",
     "check": "vp check",
-    "prepublishOnly": "vp run build",
+    "prepublishOnly": "vp check && vp test && vp pack",
     "prepare": "vp config"
+  },
+  "dependencies": {
+    "parse5": "^8.0.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
     "bumpp": "^11.1.0",
+    "satteri": "^0.9.5",
     "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
+  },
+  "peerDependencies": {
+    "satteri": "^0.9.5"
   },
   "devEngines": {
     "packageManager": {
@@ -44,5 +67,8 @@
       "version": "11.18.0",
       "onFail": "download"
     }
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }
