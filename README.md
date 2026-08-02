@@ -101,6 +101,27 @@ trusted Markdown, or provide a restricted `fetch` implementation when URLs can
 come from untrusted authors. The plugin does not currently block requests to
 private or local network addresses.
 
+## Roadmap
+
+See [the detailed roadmap](./docs/roadmap.md) for design decisions, compatibility
+scope, and the planned cache architecture.
+
+- [ ] Require Node.js 22 or newer and test maintained Node.js versions in CI.
+- [ ] Add useful `remark-link-card-plus`-compatible settings without changing
+      the standalone bare-URL rule.
+- [ ] Replace separate negative thumbnail settings with
+      `thumbnail: false | ThumbnailOptions`.
+- [ ] Add favicon rendering by default, with `favicon: false` as the initial
+      opt-out.
+- [ ] Separate the metadata cache from a pluggable public `AssetStore`.
+- [ ] Cache images and favicons under `public/satteri-link-card/` by default.
+- [ ] Add bounded asset downloads, media-type validation, and an explicit SVG
+      policy.
+- [ ] Add failure reporting, concurrency limits, stale-on-error, and offline
+      builds.
+- [ ] Add explicit cache pruning and strengthen the build-time network security
+      policy.
+
 ## Development
 
 ```sh
