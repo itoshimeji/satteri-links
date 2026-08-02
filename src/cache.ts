@@ -37,6 +37,8 @@ export class MetadataCache {
   }
 
   #path(url: string): string {
+    // URLs can contain characters that are unsafe or unwieldy in filenames.
+    // A stable hash also keeps the cache layout flat and deterministic.
     const hash = createHash("sha256").update(url).digest("hex");
     return join(this.#directory, `${hash}.json`);
   }
@@ -56,6 +58,7 @@ export class MetadataCache {
 
       return entry.metadata;
     } catch {
+      // A missing or corrupt cache must never make a content build fail.
       return undefined;
     }
   }
@@ -67,6 +70,8 @@ export class MetadataCache {
     const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
     const entry: CacheEntry = { fetchedAt: Date.now(), metadata, url };
 
+    // Write and rename so another process never observes a partially-written
+    // JSON file. The cache stores metadata only; image assets stay remote.
     await writeFile(temporaryPath, JSON.stringify(entry, null, 2), "utf8");
     await rename(temporaryPath, path);
   }

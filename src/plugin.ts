@@ -26,12 +26,16 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
   const resolvedOptions = resolveOptions(options);
   const cache =
     resolvedOptions.cache === false ? undefined : new MetadataCache(resolvedOptions.cache);
+  // This map coalesces simultaneous requests. It is deliberately separate
+  // from MetadataCache: in-flight entries live only until the current fetch
+  // settles, while the file cache can be reused by later builds.
   const inflight = new Map<string, Promise<LinkMetadata | undefined>>();
 
   async function resolveMetadata(url: URL): Promise<LinkMetadata | undefined> {
     const key = url.href;
     const pending = inflight.get(key);
     if (pending) {
+      // Another paragraph is already resolving this URL; share its result.
       return pending;
     }
 
@@ -43,9 +47,12 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
 
       try {
         const metadata = await fetchMetadata(url, resolvedOptions);
+        // Cache failures are non-fatal. The freshly fetched metadata can still
+        // be rendered even when the filesystem is read-only.
         await cache?.set(key, metadata).catch(() => undefined);
         return metadata;
       } catch {
+        // Keep the original link when remote metadata cannot be obtained.
         return undefined;
       }
     })();
@@ -61,6 +68,8 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
   return defineHastPlugin({
     name: "satteri-link-card",
     element: {
+      // Filter in Sätteri before entering JavaScript; only paragraph elements
+      // can be candidates for a standalone Markdown URL.
       filter: ["p"],
       async visit(node, context) {
         const url = findBareUrl(node, context);
@@ -70,6 +79,7 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
 
         const metadata = await resolveMetadata(url);
         if (metadata) {
+          // Returning a HAST node replaces the original <p> in the output tree.
           return renderLinkCard(metadata, resolvedOptions.openInNewTab);
         }
       },

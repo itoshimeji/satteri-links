@@ -55,6 +55,8 @@ function resolveHttpUrl(value: string | undefined, base: URL): string | undefine
 }
 
 export function extractMetadata(html: string, url: URL): LinkMetadata {
+  // Use an HTML parser instead of regular expressions because metadata pages
+  // often contain irregular markup, entity references, or reordered attrs.
   const document = parse(html);
   const metadata = new Map<string, string>();
   let title: string | undefined;
@@ -99,6 +101,8 @@ export function extractMetadata(html: string, url: URL): LinkMetadata {
 }
 
 async function readResponseText(response: Response, maxResponseBytes: number): Promise<string> {
+  // Content-Length is an inexpensive early check, but it is optional and can
+  // be absent. The streaming check below protects responses with no length.
   const declaredLength = Number(response.headers.get("content-length"));
   if (Number.isFinite(declaredLength) && declaredLength > maxResponseBytes) {
     throw new Error("Link card response is too large");
@@ -121,6 +125,8 @@ async function readResponseText(response: Response, maxResponseBytes: number): P
 
     bytesRead += value.byteLength;
     if (bytesRead > maxResponseBytes) {
+      // Cancel as soon as the limit is crossed instead of buffering the rest
+      // of a response that can never produce a card.
       await reader.cancel();
       throw new Error("Link card response is too large");
     }
@@ -135,6 +141,9 @@ export async function fetchMetadata(
   url: URL,
   options: ResolvedSatteriLinkCardOptions,
 ): Promise<LinkMetadata> {
+  // The caller owns the fetch implementation so it can add access control,
+  // proxying, retries, or SSRF protection while this plugin still enforces a
+  // timeout and HTML/size constraints around the request.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeout);
 
@@ -158,6 +167,8 @@ export async function fetchMetadata(
 
     const html = await readResponseText(response, options.maxResponseBytes);
     const responseUrl = response.url ? new URL(response.url) : url;
+    // Resolve relative image URLs against the final URL after redirects, but
+    // keep the original link as the card's href.
     return { ...extractMetadata(html, responseUrl), url: url.href };
   } finally {
     clearTimeout(timeout);

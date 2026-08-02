@@ -1,3 +1,7 @@
+/*
+ * Optional presentation preset. The plugin only emits class names so callers
+ * can omit this file and provide their own design system instead.
+ */
 a.satteri-link-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(12rem, 35%, 16rem);
@@ -84,6 +88,7 @@ img.satteri-link-card__image {
   }
 
   :where(.satteri-link-card__media) {
+    /* Keep the media square on narrow screens while the card width responds. */
     width: auto;
     height: 100%;
     aspect-ratio: 1;

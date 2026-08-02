@@ -18,6 +18,8 @@ function element(
 
 export function renderLinkCard(metadata: LinkMetadata, openInNewTab = true): HastElement {
   const url = new URL(metadata.url);
+  // Build HAST nodes instead of interpolating raw HTML. Sätteri's serializer
+  // then escapes metadata text and attributes as part of normal HTML output.
   const body = element("span", { className: ["satteri-link-card__body"] }, [
     element("span", { className: ["satteri-link-card__title"] }, [text(metadata.title)]),
     ...(metadata.description
