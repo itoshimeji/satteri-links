@@ -54,12 +54,28 @@ a.satteri-link-card:hover {
   line-height: 1.5;
 }
 
-:where(.satteri-link-card__host) {
+:where(.satteri-link-card__meta) {
+  display: flex;
+  min-width: 0;
   margin-top: auto;
   padding-top: 0.35rem;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+:where(.satteri-link-card__host) {
+  min-width: 0;
   -webkit-line-clamp: 1;
   font-size: 0.8rem;
   line-height: 1.3;
+}
+
+:where(.satteri-link-card__favicon) {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 :where(.satteri-link-card__media) {

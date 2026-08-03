@@ -82,6 +82,56 @@ describe("satteriLinkCard", () => {
     );
   });
 
+  test("renders the discovered favicon by default", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        htmlResponse('<title>Example</title><link rel="icon" href="/favicon.ico">'),
+      );
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [satteriLinkCard({ metadataCache: false, fetch })],
+    });
+
+    expect(result.html).toContain('class="satteri-link-card__favicon"');
+    expect(result.html).toContain('src="https://example.com/favicon.ico"');
+  });
+
+  test("allows metadata transformation without changing the card destination", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(htmlResponse("<title>Original title</title>"));
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [
+        satteriLinkCard({
+          metadataCache: false,
+          fetch,
+          transformMetadata: async (metadata) => ({
+            ...metadata,
+            title: "Transformed title",
+            url: "https://attacker.example/",
+          }),
+        }),
+      ],
+    });
+
+    expect(result.html).toContain("Transformed title");
+    expect(result.html).toContain('href="https://example.com/article"');
+    expect(result.html).not.toContain("attacker.example");
+  });
+
+  test("does not render a favicon when favicon is false", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        htmlResponse('<title>Example</title><link rel="icon" href="/favicon.ico">'),
+      );
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [satteriLinkCard({ metadataCache: false, fetch, favicon: false })],
+    });
+
+    expect(result.html).not.toContain("satteri-link-card__favicon");
+  });
+
   test("keeps the original link when metadata fetching fails", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()

@@ -19,6 +19,7 @@ function element(
 type renderLinkCardOptions = {
   shortenUrl: boolean;
   thumbnail: false | ThumbnailOptions;
+  favicon: boolean;
   openInNewTab: boolean;
 };
 
@@ -31,6 +32,26 @@ export function renderLinkCard(
     options.thumbnail === false ? undefined : (options.thumbnail.position ?? "right");
   // Build HAST nodes instead of interpolating raw HTML. Sätteri's serializer
   // then escapes metadata text and attributes as part of normal HTML output.
+  const host = element("span", { className: ["satteri-link-card__host"] }, [
+    text(options.shortenUrl ? url.hostname : url.href),
+  ]);
+  const meta = element("span", { className: ["satteri-link-card__meta"] }, [
+    ...(options.favicon && metadata.favicon
+      ? [
+          element(
+            "img",
+            {
+              alt: "",
+              className: ["satteri-link-card__favicon"],
+              decoding: "async",
+              src: metadata.favicon,
+            },
+            [],
+          ),
+        ]
+      : []),
+    host,
+  ]);
   const body = element("span", { className: ["satteri-link-card__body"] }, [
     element("span", { className: ["satteri-link-card__title"] }, [text(metadata.title)]),
     ...(metadata.description
@@ -40,9 +61,7 @@ export function renderLinkCard(
           ]),
         ]
       : []),
-    element("span", { className: ["satteri-link-card__host"] }, [
-      text(options.shortenUrl ? url.hostname : url.href),
-    ]),
+    meta,
   ]);
 
   function createLinkCard(children: HastElement[]): HastElement {

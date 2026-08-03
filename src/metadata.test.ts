@@ -13,6 +13,7 @@ function options(
     timeout: 100,
     shortenUrl: true,
     thumbnail: { position: "right" },
+    favicon: true,
     ignoreExtensions: [],
     openInNewTab: true,
     ...overrides,
@@ -53,6 +54,25 @@ describe("extractMetadata", () => {
     );
 
     expect(metadata.image).toBe("https://example.com/images/card.png");
+  });
+
+  test("selects the highest-priority favicon and resolves it against the page URL", () => {
+    const metadata = extractMetadata(
+      `
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="shortcut icon" href="/shortcut.ico">
+        <link rel="icon" href="icons/favicon.svg">
+      `,
+      new URL("https://example.com/articles/page"),
+    );
+
+    expect(metadata.favicon).toBe("https://example.com/articles/icons/favicon.svg");
+  });
+
+  test("falls back to the origin favicon when no favicon link exists", () => {
+    const metadata = extractMetadata("<title>Example</title>", new URL("https://example.com/page"));
+
+    expect(metadata.favicon).toBe("https://example.com/favicon.ico");
   });
 
   test("falls back to the document title and hostname", () => {

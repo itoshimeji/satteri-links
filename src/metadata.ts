@@ -13,6 +13,28 @@ function getAttribute(element: HtmlElement, name: string): string | undefined {
   return element.attrs.find((attribute) => attribute.name === name)?.value;
 }
 
+function getFaviconPriority(element: HtmlElement): number | undefined {
+  const rel = getAttribute(element, "rel")?.toLowerCase().split(/\s+/).filter(Boolean);
+
+  if (!rel) {
+    return undefined;
+  }
+
+  if (rel.length === 1 && rel[0] === "icon") {
+    return 0;
+  }
+
+  if (rel.includes("shortcut") && rel.includes("icon")) {
+    return 1;
+  }
+
+  if (rel.includes("apple-touch-icon")) {
+    return 2;
+  }
+
+  return undefined;
+}
+
 function collectText(node: HtmlNode): string {
   if ("value" in node) {
     return node.value;
@@ -67,6 +89,7 @@ export function extractMetadata(html: string, documentUrl: URL): ExtractedMetada
   const document = parse(html);
   const metadata = new Map<string, string>();
   let title: string | undefined;
+  let faviconCandidate: { priority: number; value: string } | undefined;
 
   walk(document, (node) => {
     if (!isElement(node)) {
@@ -75,6 +98,17 @@ export function extractMetadata(html: string, documentUrl: URL): ExtractedMetada
 
     if (node.tagName === "title" && !title) {
       title = collectText(node).trim();
+      return;
+    }
+
+    if (node.tagName === "link") {
+      const priority = getFaviconPriority(node);
+      const href = getAttribute(node, "href")?.trim();
+      if (priority !== undefined && href) {
+        if (!faviconCandidate || priority < faviconCandidate.priority) {
+          faviconCandidate = { priority, value: href };
+        }
+      }
       return;
     }
 
@@ -111,6 +145,9 @@ export function extractMetadata(html: string, documentUrl: URL): ExtractedMetada
       first(metadata.get("og:image"), metadata.get("og:image:url"), metadata.get("twitter:image")),
       documentUrl,
     ),
+    favicon:
+      resolveHttpUrl(faviconCandidate?.value, documentUrl) ??
+      resolveHttpUrl("/favicon.ico", documentUrl),
   };
 }
 

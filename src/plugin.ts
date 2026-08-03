@@ -21,7 +21,9 @@ function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCar
     timeout: options.timeout ?? DEFAULT_TIMEOUT,
     shortenUrl: options.shortenUrl ?? true,
     thumbnail: options.thumbnail ?? { position: "right" },
+    favicon: options.favicon !== false,
     ignoreExtensions: options.ignoreExtensions ?? [],
+    transformMetadata: options.transformMetadata,
     openInNewTab: options.openInNewTab ?? true,
   };
 }
@@ -85,10 +87,25 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
 
         const metadata = await resolveMetadata(url);
         if (metadata) {
+          let renderMetadata = metadata;
+          if (resolvedOptions.transformMetadata) {
+            try {
+              const transformed = await resolvedOptions.transformMetadata(metadata, url);
+              // The Markdown URL is the card destination. Transformers may
+              // change preview data, but they cannot redirect the generated
+              // card to a different target.
+              renderMetadata = { ...transformed, url: metadata.url };
+            } catch {
+              // A transformer is an enhancement; keep the fetched metadata if
+              // user code fails so one card does not break the whole build.
+            }
+          }
+
           // Returning a HAST node replaces the original <p> in the output tree.
-          return renderLinkCard(metadata, {
+          return renderLinkCard(renderMetadata, {
             shortenUrl: resolvedOptions.shortenUrl,
             thumbnail: resolvedOptions.thumbnail,
+            favicon: resolvedOptions.favicon,
             openInNewTab: resolvedOptions.openInNewTab,
           });
         }

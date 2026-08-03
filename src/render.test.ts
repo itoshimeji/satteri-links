@@ -10,7 +10,12 @@ describe("renderLinkCard", () => {
         description: "Example description",
         image: "https://cdn.example.com/card.png",
       },
-      { shortenUrl: true, thumbnail: { position: "right" }, openInNewTab: true },
+      {
+        shortenUrl: true,
+        thumbnail: { position: "right" },
+        favicon: true,
+        openInNewTab: true,
+      },
     );
 
     expect(card.tagName).toBe("a");
@@ -34,8 +39,13 @@ describe("renderLinkCard", () => {
             children: [{ type: "text", value: "Example description" }],
           }),
           expect.objectContaining({
-            properties: { className: ["satteri-link-card__host"] },
-            children: [{ type: "text", value: "www.example.com" }],
+            properties: { className: ["satteri-link-card__meta"] },
+            children: [
+              expect.objectContaining({
+                properties: { className: ["satteri-link-card__host"] },
+                children: [{ type: "text", value: "www.example.com" }],
+              }),
+            ],
           }),
         ],
       }),
@@ -62,7 +72,12 @@ describe("renderLinkCard", () => {
         description: "Example description",
         image: "https://cdn.example.com/card.png",
       },
-      { shortenUrl: true, thumbnail: { position: "left" }, openInNewTab: true },
+      {
+        shortenUrl: true,
+        thumbnail: { position: "left" },
+        favicon: true,
+        openInNewTab: true,
+      },
     );
 
     expect(card.children).toEqual([
@@ -87,7 +102,7 @@ describe("renderLinkCard", () => {
         description: "Example description",
         image: "https://cdn.example.com/card.png",
       },
-      { shortenUrl: true, thumbnail: false, openInNewTab: true },
+      { shortenUrl: true, thumbnail: false, favicon: true, openInNewTab: true },
     );
 
     expect(card.children).toEqual([
@@ -106,7 +121,7 @@ describe("renderLinkCard", () => {
         title: "Example title",
         image: "https://cdn.example.com/card.png",
       },
-      { shortenUrl: true, thumbnail: {}, openInNewTab: true },
+      { shortenUrl: true, thumbnail: {}, favicon: true, openInNewTab: true },
     );
 
     expect(card.children).toEqual([
@@ -122,16 +137,29 @@ describe("renderLinkCard", () => {
   test("renders the full URL when shortenUrl is false", () => {
     const card = renderLinkCard(
       { url: "https://example.com/articles/hello?lang=ja#summary", title: "Example" },
-      { shortenUrl: false, thumbnail: { position: "right" }, openInNewTab: true },
+      {
+        shortenUrl: false,
+        thumbnail: { position: "right" },
+        favicon: true,
+        openInNewTab: true,
+      },
     );
 
     expect(card.children).toEqual([
       expect.objectContaining({
         children: expect.arrayContaining([
           expect.objectContaining({
-            properties: { className: ["satteri-link-card__host"] },
+            properties: { className: ["satteri-link-card__meta"] },
             children: [
-              { type: "text", value: "https://example.com/articles/hello?lang=ja#summary" },
+              expect.objectContaining({
+                properties: { className: ["satteri-link-card__host"] },
+                children: [
+                  {
+                    type: "text",
+                    value: "https://example.com/articles/hello?lang=ja#summary",
+                  },
+                ],
+              }),
             ],
           }),
         ]),
@@ -142,7 +170,12 @@ describe("renderLinkCard", () => {
   test("omits optional fields and new-tab attributes when disabled", () => {
     const card = renderLinkCard(
       { url: "https://example.com/", title: "Example" },
-      { shortenUrl: true, thumbnail: { position: "right" }, openInNewTab: false },
+      {
+        shortenUrl: true,
+        thumbnail: { position: "right" },
+        favicon: true,
+        openInNewTab: false,
+      },
     );
 
     expect(card.properties).not.toHaveProperty("target");
@@ -150,5 +183,30 @@ describe("renderLinkCard", () => {
     expect(card.children).toHaveLength(1);
     expect(JSON.stringify(card)).not.toContain("satteri-link-card__description");
     expect(JSON.stringify(card)).not.toContain("satteri-link-card__media");
+  });
+
+  test("renders a favicon by default and can disable it", () => {
+    const metadata = {
+      url: "https://example.com/",
+      title: "Example",
+      favicon: "https://example.com/favicon.ico",
+    };
+
+    const withFavicon = renderLinkCard(metadata, {
+      shortenUrl: true,
+      thumbnail: false,
+      favicon: true,
+      openInNewTab: true,
+    });
+    const withoutFavicon = renderLinkCard(metadata, {
+      shortenUrl: true,
+      thumbnail: false,
+      favicon: false,
+      openInNewTab: true,
+    });
+
+    expect(JSON.stringify(withFavicon)).toContain("satteri-link-card__favicon");
+    expect(JSON.stringify(withFavicon)).toContain("https://example.com/favicon.ico");
+    expect(JSON.stringify(withoutFavicon)).not.toContain("satteri-link-card__favicon");
   });
 });
