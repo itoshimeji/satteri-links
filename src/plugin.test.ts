@@ -24,10 +24,10 @@ function htmlResponse(html: string): Response {
 async function render(
   markdown: string,
   fetch: typeof globalThis.fetch,
-  cache: false | { directory: string } = false,
+  metadataCache: false | { directory: string } = false,
 ): Promise<string> {
   const result = await markdownToHtml(markdown, {
-    hastPlugins: [satteriLinkCard({ cache, fetch })],
+    hastPlugins: [satteriLinkCard({ metadataCache, fetch })],
   });
   return result.html;
 }
@@ -69,7 +69,7 @@ describe("satteriLinkCard", () => {
     const result = await markdownToHtml("https://example.com/video.mp4", {
       hastPlugins: [
         satteriLinkCard({
-          cache: false,
+          metadataCache: false,
           fetch,
           ignoreExtensions: [".mp4"],
         }),
@@ -113,7 +113,7 @@ describe("satteriLinkCard", () => {
       resolveResponse = resolve;
     });
     const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(() => response);
-    const plugin = satteriLinkCard({ cache: false, fetch });
+    const plugin = satteriLinkCard({ metadataCache: false, fetch });
     const renderOne = markdownToHtml("https://example.com/shared", {
       hastPlugins: [plugin],
     });

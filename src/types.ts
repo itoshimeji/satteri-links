@@ -5,7 +5,7 @@ export type LinkMetadata = {
   image?: string;
 };
 
-export type LinkCardCacheOptions = {
+export type MetadataCacheOptions = {
   directory?: string;
   maxAge?: number | false;
 };
@@ -14,9 +14,8 @@ export type ThumbnailOptions = {
   position?: "left" | "right";
 };
 
-// todo: image cache, favicon, ogTransformer
 export type SatteriLinkCardOptions = {
-  cache?: LinkCardCacheOptions | false;
+  metadataCache?: MetadataCacheOptions | false;
   fetch?: typeof globalThis.fetch;
   maxResponseBytes?: number;
   timeout?: number;
@@ -27,7 +26,7 @@ export type SatteriLinkCardOptions = {
 };
 
 export type ResolvedSatteriLinkCardOptions = {
-  cache: LinkCardCacheOptions | false;
+  metadataCache: MetadataCacheOptions | false;
   fetch: typeof globalThis.fetch;
   maxResponseBytes: number;
   timeout: number;

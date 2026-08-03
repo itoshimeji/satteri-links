@@ -1,14 +1,16 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { LinkCardCacheOptions, LinkMetadata } from "./types.js";
+import type { LinkMetadata, MetadataCacheOptions } from "./types.js";
 
 type CacheEntry = {
+  version: 1;
   fetchedAt: number;
   metadata: LinkMetadata;
   url: string;
 };
 
+const CACHE_VERSION = 1;
 const DEFAULT_CACHE_DIRECTORY = ".cache/satteri-link-card";
 const DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
@@ -19,6 +21,7 @@ function isCacheEntry(value: unknown): value is CacheEntry {
 
   const entry = value as Partial<CacheEntry>;
   return (
+    entry.version === CACHE_VERSION &&
     typeof entry.url === "string" &&
     typeof entry.fetchedAt === "number" &&
     !!entry.metadata &&
@@ -31,7 +34,7 @@ export class MetadataCache {
   readonly #directory: string;
   readonly #maxAge: number | false;
 
-  constructor(options: LinkCardCacheOptions = {}) {
+  constructor(options: MetadataCacheOptions = {}) {
     this.#directory = options.directory ?? DEFAULT_CACHE_DIRECTORY;
     this.#maxAge = options.maxAge ?? DEFAULT_MAX_AGE;
   }
@@ -68,7 +71,12 @@ export class MetadataCache {
 
     const path = this.#path(url);
     const temporaryPath = `${path}.${process.pid}.${randomUUID()}.tmp`;
-    const entry: CacheEntry = { fetchedAt: Date.now(), metadata, url };
+    const entry: CacheEntry = {
+      fetchedAt: Date.now(),
+      metadata,
+      url,
+      version: CACHE_VERSION,
+    };
 
     // Write and rename so another process never observes a partially-written
     // JSON file. The cache stores metadata only; image assets stay remote.

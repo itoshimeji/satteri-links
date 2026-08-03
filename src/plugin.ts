@@ -13,20 +13,9 @@ import { hasIgnoredExtension } from "./url.js";
 const DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
 const DEFAULT_TIMEOUT = 5000;
 
-// export type ResolvedSatteriLinkCardOptions = {
-//   cache: LinkCardCacheOptions | false;
-//   fetch: typeof globalThis.fetch;
-//   maxResponseBytes: number;
-//   timeout: number;
-//   shortenUrl: boolean;
-//   thumbnail: false | ThumbnailOptions;
-//   ignoreExtensions: string[];
-//   openInNewTab: boolean;
-// };
-
 function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCardOptions {
   return {
-    cache: options.cache ?? {},
+    metadataCache: options.metadataCache ?? {},
     fetch: options.fetch ?? globalThis.fetch,
     maxResponseBytes: options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES,
     timeout: options.timeout ?? DEFAULT_TIMEOUT,
@@ -40,7 +29,9 @@ function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCar
 export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
   const resolvedOptions = resolveOptions(options);
   const cache =
-    resolvedOptions.cache === false ? undefined : new MetadataCache(resolvedOptions.cache);
+    resolvedOptions.metadataCache === false
+      ? undefined
+      : new MetadataCache(resolvedOptions.metadataCache);
   // This map coalesces simultaneous requests. It is deliberately separate
   // from MetadataCache: in-flight entries live only until the current fetch
   // settles, while the file cache can be reused by later builds.

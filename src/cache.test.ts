@@ -42,7 +42,7 @@ describe("MetadataCache", () => {
     expect(files).toHaveLength(1);
     expect(files[0]).toMatch(/^[a-f0-9]{64}\.json$/);
     const entry = JSON.parse(await readFile(join(directory, files[0]), "utf8"));
-    expect(entry).toMatchObject({ metadata, url: metadata.url });
+    expect(entry).toMatchObject({ metadata, url: metadata.url, version: 1 });
   });
 
   test("returns undefined for missing, corrupt, or mismatched entries", async () => {
@@ -60,6 +60,19 @@ describe("MetadataCache", () => {
     const entry = JSON.parse(await readFile(join(directory, file), "utf8"));
     entry.url = "https://example.com/different";
     await writeFile(join(directory, file), JSON.stringify(entry), "utf8");
+    expect(await cache.get(metadata.url)).toBeUndefined();
+  });
+
+  test("returns undefined for entries from an older cache schema", async () => {
+    const directory = await temporaryDirectory();
+    const cache = new MetadataCache({ directory });
+
+    await cache.set(metadata.url, metadata);
+    const [file] = await readdir(directory);
+    const entry = JSON.parse(await readFile(join(directory, file), "utf8"));
+    delete entry.version;
+    await writeFile(join(directory, file), JSON.stringify(entry), "utf8");
+
     expect(await cache.get(metadata.url)).toBeUndefined();
   });
 

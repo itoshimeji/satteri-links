@@ -7,7 +7,7 @@ function options(
   overrides: Partial<ResolvedSatteriLinkCardOptions> = {},
 ): ResolvedSatteriLinkCardOptions {
   return {
-    cache: false,
+    metadataCache: false,
     fetch,
     maxResponseBytes: 1024,
     timeout: 100,
