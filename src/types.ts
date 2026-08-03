@@ -20,6 +20,25 @@ export type MetadataTransformer = (
   url: URL,
 ) => LinkMetadata | Promise<LinkMetadata>;
 
+export type ImageInput = {
+  bytes: Uint8Array;
+  contentType: string;
+};
+
+export type CachedImage = {
+  src: string;
+};
+
+export interface ImageCacheStore {
+  get(sourceUrl: URL): Promise<CachedImage | undefined>;
+  put(sourceUrl: URL, image: ImageInput): Promise<CachedImage>;
+}
+
+export type ImageCacheOptions = {
+  store?: ImageCacheStore;
+  maxBytes?: number;
+};
+
 export type SatteriLinkCardOptions = {
   metadataCache?: MetadataCacheOptions | false;
   fetch?: typeof globalThis.fetch;
@@ -30,6 +49,7 @@ export type SatteriLinkCardOptions = {
   favicon?: false;
   ignoreExtensions?: string[];
   transformMetadata?: MetadataTransformer;
+  imageCache?: boolean | ImageCacheOptions;
   openInNewTab?: boolean;
 };
 
@@ -43,5 +63,6 @@ export type ResolvedSatteriLinkCardOptions = {
   favicon: boolean;
   ignoreExtensions: string[];
   transformMetadata?: MetadataTransformer;
+  imageCache: false | Required<ImageCacheOptions>;
   openInNewTab: boolean;
 };

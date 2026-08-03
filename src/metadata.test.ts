@@ -16,6 +16,7 @@ function options(
     favicon: true,
     ignoreExtensions: [],
     openInNewTab: true,
+    imageCache: false,
     ...overrides,
   };
 }

@@ -1,6 +1,8 @@
 import { defineHastPlugin } from "satteri";
 import { MetadataCache } from "./cache.js";
 import { findBareUrl } from "./candidate.js";
+import { fetchImage } from "./image-fetch.js";
+import { createFileSystemImageCacheStore } from "./image-store.js";
 import { fetchMetadata } from "./metadata.js";
 import { renderLinkCard } from "./render.js";
 import type {
@@ -11,9 +13,13 @@ import type {
 import { hasIgnoredExtension } from "./url.js";
 
 const DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
+const DEFAULT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_TIMEOUT = 5000;
 
 function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCardOptions {
+  const imageCache = options.imageCache ?? false;
+  const imageCacheOptions = imageCache === true ? {} : imageCache;
+
   return {
     metadataCache: options.metadataCache ?? {},
     fetch: options.fetch ?? globalThis.fetch,
@@ -24,6 +30,13 @@ function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCar
     favicon: options.favicon !== false,
     ignoreExtensions: options.ignoreExtensions ?? [],
     transformMetadata: options.transformMetadata,
+    imageCache:
+      imageCacheOptions === false
+        ? false
+        : {
+            maxBytes: imageCacheOptions.maxBytes ?? DEFAULT_MAX_IMAGE_BYTES,
+            store: imageCacheOptions.store ?? createFileSystemImageCacheStore(),
+          },
     openInNewTab: options.openInNewTab ?? true,
   };
 }
@@ -38,6 +51,7 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
   // from MetadataCache: in-flight entries live only until the current fetch
   // settles, while the file cache can be reused by later builds.
   const inflight = new Map<string, Promise<LinkMetadata | undefined>>();
+  const imageInflight = new Map<string, Promise<string | undefined>>();
 
   async function resolveMetadata(url: URL): Promise<LinkMetadata | undefined> {
     const key = url.href;
@@ -73,6 +87,73 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
     }
   }
 
+  async function resolveImage(value: string | undefined): Promise<string | undefined> {
+    if (!value) {
+      return undefined;
+    }
+
+    let sourceUrl: URL;
+    try {
+      sourceUrl = new URL(value);
+      if (sourceUrl.protocol !== "http:" && sourceUrl.protocol !== "https:") {
+        return undefined;
+      }
+    } catch {
+      return undefined;
+    }
+
+    const imageCache = resolvedOptions.imageCache;
+    if (imageCache === false) {
+      return sourceUrl.href;
+    }
+
+    const key = sourceUrl.href;
+    const pending = imageInflight.get(key);
+    if (pending) {
+      return pending;
+    }
+
+    const request = (async () => {
+      try {
+        const cached = await imageCache.store.get(sourceUrl);
+        if (cached) {
+          return cached.src;
+        }
+
+        const image = await fetchImage(sourceUrl, {
+          fetch: resolvedOptions.fetch,
+          maxBytes: imageCache.maxBytes,
+          timeout: resolvedOptions.timeout,
+        });
+        return (await imageCache.store.put(sourceUrl, image)).src;
+      } catch {
+        // Image caching is an optimization. Keep the existing remote image if
+        // a cache backend or image request is unavailable.
+        return sourceUrl.href;
+      }
+    })();
+
+    imageInflight.set(key, request);
+    try {
+      return await request;
+    } finally {
+      imageInflight.delete(key);
+    }
+  }
+
+  async function resolveAssets(metadata: LinkMetadata): Promise<LinkMetadata> {
+    const [image, favicon] = await Promise.all([
+      resolvedOptions.thumbnail === false ? undefined : resolveImage(metadata.image),
+      resolvedOptions.favicon ? resolveImage(metadata.favicon) : undefined,
+    ]);
+
+    return {
+      ...metadata,
+      image: metadata.image ? image : undefined,
+      favicon: metadata.favicon ? favicon : undefined,
+    };
+  }
+
   return defineHastPlugin({
     name: "satteri-link-card",
     element: {
@@ -101,8 +182,10 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
             }
           }
 
+          const metadataWithAssets = await resolveAssets(renderMetadata);
+
           // Returning a HAST node replaces the original <p> in the output tree.
-          return renderLinkCard(renderMetadata, {
+          return renderLinkCard(metadataWithAssets, {
             shortenUrl: resolvedOptions.shortenUrl,
             thumbnail: resolvedOptions.thumbnail,
             favicon: resolvedOptions.favicon,

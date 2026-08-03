@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { markdownToHtml } from "satteri";
 import { afterEach, describe, expect, test, vi } from "vite-plus/test";
 import { satteriLinkCard } from "./index.ts";
+import { createFileSystemImageCacheStore } from "./image-store.ts";
 
 const temporaryDirectories: string[] = [];
 
@@ -19,6 +20,19 @@ function htmlResponse(html: string): Response {
   return new Response(html, {
     headers: { "content-type": "text/html; charset=utf-8" },
   });
+}
+
+function imageResponse(bytes: number[], contentType: string): Response {
+  return new Response(Uint8Array.from(bytes), {
+    headers: { "content-type": contentType },
+  });
+}
+
+function inputUrl(input: Parameters<typeof globalThis.fetch>[0]): string {
+  if (typeof input === "string") {
+    return input;
+  }
+  return input instanceof URL ? input.href : input.url;
 }
 
 async function render(
@@ -130,6 +144,56 @@ describe("satteriLinkCard", () => {
     });
 
     expect(result.html).not.toContain("satteri-link-card__favicon");
+  });
+
+  test("caches thumbnails and favicons through the image cache", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "satteri-link-card-images-"));
+    temporaryDirectories.push(directory);
+    const imageStore = createFileSystemImageCacheStore({
+      directory,
+      publicPath: "/assets/cards",
+    });
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async (input) => {
+      const href = inputUrl(input);
+      if (href === "https://example.com/article") {
+        return htmlResponse(
+          '<meta property="og:image" content="https://cdn.example.com/card.png"><link rel="icon" href="https://cdn.example.com/favicon.ico">',
+        );
+      }
+      if (href === "https://cdn.example.com/card.png") {
+        return imageResponse([1, 2, 3], "image/png");
+      }
+      if (href === "https://cdn.example.com/favicon.ico") {
+        return imageResponse([4, 5, 6], "image/x-icon");
+      }
+      throw new Error(`Unexpected URL: ${href}`);
+    });
+    const plugin = satteriLinkCard({
+      metadataCache: false,
+      fetch,
+      imageCache: { store: imageStore },
+    });
+
+    const first = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [plugin],
+    });
+    const second = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [plugin],
+    });
+
+    expect(first.html).toContain("/assets/cards/");
+    expect(first.html).toBe(second.html);
+    expect(
+      fetch.mock.calls.filter(([input]) => inputUrl(input) === "https://example.com/article"),
+    ).toHaveLength(2);
+    expect(
+      fetch.mock.calls.filter(([input]) => inputUrl(input) === "https://cdn.example.com/card.png"),
+    ).toHaveLength(1);
+    expect(
+      fetch.mock.calls.filter(
+        ([input]) => inputUrl(input) === "https://cdn.example.com/favicon.ico",
+      ),
+    ).toHaveLength(1);
   });
 
   test("keeps the original link when metadata fetching fails", async () => {
