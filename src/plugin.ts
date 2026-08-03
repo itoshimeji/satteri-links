@@ -8,6 +8,7 @@ import type {
   ResolvedSatteriLinkCardOptions,
   SatteriLinkCardOptions,
 } from "./types.js";
+import { hasIgnoredExtension } from "./url.ts";
 
 const DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
 const DEFAULT_TIMEOUT = 5000;
@@ -31,6 +32,7 @@ function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCar
     timeout: options.timeout ?? DEFAULT_TIMEOUT,
     shortenUrl: options.shortenUrl ?? true,
     thumbnail: options.thumbnail ?? { position: "right" },
+    ignoreExtensions: options.ignoreExtensions ?? [],
     openInNewTab: options.openInNewTab ?? true,
   };
 }
@@ -86,7 +88,7 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
       filter: ["p"],
       async visit(node, context) {
         const url = findBareUrl(node, context);
-        if (!url) {
+        if (!url || hasIgnoredExtension(url, resolvedOptions.ignoreExtensions)) {
           return;
         }
 

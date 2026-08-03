@@ -13,6 +13,7 @@ function options(
     timeout: 100,
     shortenUrl: true,
     thumbnail: { position: "right" },
+    ignoreExtensions: [],
     openInNewTab: true,
     ...overrides,
   };

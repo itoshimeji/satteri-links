@@ -14,7 +14,7 @@ export type ThumbnailOptions = {
   position?: "left" | "right";
 };
 
-// todo: image cache, ignoreExtensions, favicon, ogTransformer
+// todo: image cache, favicon, ogTransformer
 export type SatteriLinkCardOptions = {
   cache?: LinkCardCacheOptions | false;
   fetch?: typeof globalThis.fetch;
@@ -22,6 +22,7 @@ export type SatteriLinkCardOptions = {
   timeout?: number;
   shortenUrl?: boolean;
   thumbnail?: false | ThumbnailOptions;
+  ignoreExtensions?: string[];
   openInNewTab?: boolean;
 };
 
@@ -32,5 +33,6 @@ export type ResolvedSatteriLinkCardOptions = {
   timeout: number;
   shortenUrl: boolean;
   thumbnail: false | ThumbnailOptions;
+  ignoreExtensions: string[];
   openInNewTab: boolean;
 };
