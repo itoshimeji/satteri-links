@@ -8,7 +8,7 @@ import type {
   ResolvedSatteriLinkCardOptions,
   SatteriLinkCardOptions,
 } from "./types.js";
-import { hasIgnoredExtension } from "./url.ts";
+import { hasIgnoredExtension } from "./url.js";
 
 const DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
 const DEFAULT_TIMEOUT = 5000;

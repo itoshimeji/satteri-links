@@ -27,6 +27,8 @@ export function renderLinkCard(
   options: renderLinkCardOptions,
 ): HastElement {
   const url = new URL(metadata.url);
+  const thumbnailPosition =
+    options.thumbnail === false ? undefined : (options.thumbnail.position ?? "right");
   // Build HAST nodes instead of interpolating raw HTML. Sätteri's serializer
   // then escapes metadata text and attributes as part of normal HTML output.
   const body = element("span", { className: ["satteri-link-card__body"] }, [
@@ -71,9 +73,9 @@ export function renderLinkCard(
     ]);
   }
 
-  return metadata.image !== undefined && options.thumbnail !== false
+  return metadata.image !== undefined && thumbnailPosition !== undefined
     ? createLinkCard(
-        options.thumbnail.position === "right"
+        thumbnailPosition === "right"
           ? [body, createMedia(metadata.image)]
           : [createMedia(metadata.image), body],
       )

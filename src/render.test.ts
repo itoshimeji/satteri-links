@@ -79,7 +79,7 @@ describe("renderLinkCard", () => {
     ]);
   });
 
-  test("does'nt render the thumbnail when thumbnail is false", () => {
+  test("does not render the thumbnail when thumbnail is false", () => {
     const card = renderLinkCard(
       {
         url: "https://www.example.com/article",
@@ -95,6 +95,26 @@ describe("renderLinkCard", () => {
         properties: {
           className: ["satteri-link-card__body"],
         },
+      }),
+    ]);
+  });
+
+  test("uses the right position when thumbnail options are empty", () => {
+    const card = renderLinkCard(
+      {
+        url: "https://www.example.com/article",
+        title: "Example title",
+        image: "https://cdn.example.com/card.png",
+      },
+      { shortenUrl: true, thumbnail: {}, openInNewTab: true },
+    );
+
+    expect(card.children).toEqual([
+      expect.objectContaining({
+        properties: { className: ["satteri-link-card__body"] },
+      }),
+      expect.objectContaining({
+        properties: { className: ["satteri-link-card__media"] },
       }),
     ]);
   });

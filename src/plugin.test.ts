@@ -64,6 +64,24 @@ describe("satteriLinkCard", () => {
     );
   });
 
+  test("leaves ignored extensions unchanged without fetching metadata", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    const result = await markdownToHtml("https://example.com/video.mp4", {
+      hastPlugins: [
+        satteriLinkCard({
+          cache: false,
+          fetch,
+          ignoreExtensions: [".mp4"],
+        }),
+      ],
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(result.html).toBe(
+      '<p><a href="https://example.com/video.mp4">https://example.com/video.mp4</a></p>\n',
+    );
+  });
+
   test("keeps the original link when metadata fetching fails", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()

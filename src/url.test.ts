@@ -13,4 +13,8 @@ describe("hasIgnoredExtension", () => {
   ])("returns %s for %s", (href, expected) => {
     expect(hasIgnoredExtension(new URL(href), [".pdf", ".mp4", ".mp3"])).toBe(expected);
   });
+
+  test("returns false when no extensions are configured", () => {
+    expect(hasIgnoredExtension(new URL("https://example.com/foo/bar.mp4"), [])).toBe(false);
+  });
 });
