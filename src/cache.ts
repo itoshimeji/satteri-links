@@ -79,7 +79,8 @@ export class MetadataCache {
     };
 
     // Write and rename so another process never observes a partially-written
-    // JSON file. The cache stores metadata only; image assets stay remote.
+    // JSON file. Image and favicon bytes are managed by the separate image
+    // cache, so this store remains metadata-only.
     await writeFile(temporaryPath, JSON.stringify(entry, null, 2), "utf8");
     await rename(temporaryPath, path);
   }

@@ -52,6 +52,18 @@ describe("createFileSystemImageCacheStore", () => {
     expect(await store.get(new URL("https://example.com/missing"))).toBeUndefined();
   });
 
+  test("uses the public image cache path by default", async () => {
+    const directory = await temporaryDirectory();
+    const store = createFileSystemImageCacheStore({ directory });
+
+    const cached = await store.put(new URL("https://example.com/card"), {
+      bytes: Uint8Array.from([1]),
+      contentType: "image/webp",
+    });
+
+    expect(cached.src).toMatch(/^\/satteri-link-card\/[a-f0-9]{64}\/asset\.webp$/);
+  });
+
   test("rejects unsupported content types", async () => {
     const directory = await temporaryDirectory();
     const store = createFileSystemImageCacheStore({ directory });
