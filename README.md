@@ -109,7 +109,7 @@ scope, and the planned cache architecture.
 - [x] Require Node.js 22 or newer and test maintained Node.js versions in CI.
 - [ ] Add useful `remark-link-card-plus`-compatible settings without changing
       the standalone bare-URL rule.
-- [ ] Replace separate negative thumbnail settings with
+- [x] Replace separate negative thumbnail settings with
       `thumbnail: false | ThumbnailOptions`.
 - [ ] Add favicon rendering by default, with `favicon: false` as the initial
       opt-out.

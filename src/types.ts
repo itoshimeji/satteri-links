@@ -10,13 +10,18 @@ export type LinkCardCacheOptions = {
   maxAge?: number | false;
 };
 
-// todo: image cache, thumbnail, ignoreExtensions, favicon, ogTransformer
+export type ThumbnailOptions = {
+  position?: "left" | "right";
+};
+
+// todo: image cache, ignoreExtensions, favicon, ogTransformer
 export type SatteriLinkCardOptions = {
   cache?: LinkCardCacheOptions | false;
   fetch?: typeof globalThis.fetch;
   maxResponseBytes?: number;
   timeout?: number;
   shortenUrl?: boolean;
+  thumbnail?: false | ThumbnailOptions;
   openInNewTab?: boolean;
 };
 
@@ -26,5 +31,6 @@ export type ResolvedSatteriLinkCardOptions = {
   maxResponseBytes: number;
   timeout: number;
   shortenUrl: boolean;
+  thumbnail: false | ThumbnailOptions;
   openInNewTab: boolean;
 };

@@ -10,7 +10,7 @@ describe("renderLinkCard", () => {
         description: "Example description",
         image: "https://cdn.example.com/card.png",
       },
-      { shortenUrl: true, openInNewTab: true },
+      { shortenUrl: true, thumbnail: { position: "right" }, openInNewTab: true },
     );
 
     expect(card.tagName).toBe("a");
@@ -54,10 +54,55 @@ describe("renderLinkCard", () => {
     ]);
   });
 
+  test("renders the thumbnail before the body when positioned left", () => {
+    const card = renderLinkCard(
+      {
+        url: "https://www.example.com/article",
+        title: "Example title",
+        description: "Example description",
+        image: "https://cdn.example.com/card.png",
+      },
+      { shortenUrl: true, thumbnail: { position: "left" }, openInNewTab: true },
+    );
+
+    expect(card.children).toEqual([
+      expect.objectContaining({
+        properties: {
+          className: ["satteri-link-card__media"],
+        },
+      }),
+      expect.objectContaining({
+        properties: {
+          className: ["satteri-link-card__body"],
+        },
+      }),
+    ]);
+  });
+
+  test("does'nt render the thumbnail when thumbnail is false", () => {
+    const card = renderLinkCard(
+      {
+        url: "https://www.example.com/article",
+        title: "Example title",
+        description: "Example description",
+        image: "https://cdn.example.com/card.png",
+      },
+      { shortenUrl: true, thumbnail: false, openInNewTab: true },
+    );
+
+    expect(card.children).toEqual([
+      expect.objectContaining({
+        properties: {
+          className: ["satteri-link-card__body"],
+        },
+      }),
+    ]);
+  });
+
   test("renders the full URL when shortenUrl is false", () => {
     const card = renderLinkCard(
       { url: "https://example.com/articles/hello?lang=ja#summary", title: "Example" },
-      { shortenUrl: false, openInNewTab: true },
+      { shortenUrl: false, thumbnail: { position: "right" }, openInNewTab: true },
     );
 
     expect(card.children).toEqual([
@@ -77,7 +122,7 @@ describe("renderLinkCard", () => {
   test("omits optional fields and new-tab attributes when disabled", () => {
     const card = renderLinkCard(
       { url: "https://example.com/", title: "Example" },
-      { shortenUrl: true, openInNewTab: false },
+      { shortenUrl: true, thumbnail: { position: "right" }, openInNewTab: false },
     );
 
     expect(card.properties).not.toHaveProperty("target");

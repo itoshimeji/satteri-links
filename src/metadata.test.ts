@@ -10,8 +10,10 @@ function options(
     cache: false,
     fetch,
     maxResponseBytes: 1024,
-    openInNewTab: true,
     timeout: 100,
+    shortenUrl: true,
+    thumbnail: { position: "right" },
+    openInNewTab: true,
     ...overrides,
   };
 }

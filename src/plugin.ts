@@ -30,6 +30,7 @@ function resolveOptions(options: SatteriLinkCardOptions): ResolvedSatteriLinkCar
     maxResponseBytes: options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES,
     timeout: options.timeout ?? DEFAULT_TIMEOUT,
     shortenUrl: options.shortenUrl ?? true,
+    thumbnail: options.thumbnail ?? { position: "right" },
     openInNewTab: options.openInNewTab ?? true,
   };
 }
@@ -94,6 +95,7 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
           // Returning a HAST node replaces the original <p> in the output tree.
           return renderLinkCard(metadata, {
             shortenUrl: resolvedOptions.shortenUrl,
+            thumbnail: resolvedOptions.thumbnail,
             openInNewTab: resolvedOptions.openInNewTab,
           });
         }

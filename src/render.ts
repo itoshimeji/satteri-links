@@ -1,5 +1,5 @@
 import type { HastNode } from "satteri";
-import type { LinkMetadata } from "./types.js";
+import type { LinkMetadata, ThumbnailOptions } from "./types.js";
 
 type HastElement = Extract<HastNode, { type: "element" }>;
 type HastText = Extract<HastNode, { type: "text" }>;
@@ -18,6 +18,7 @@ function element(
 
 type renderLinkCardOptions = {
   shortenUrl: boolean;
+  thumbnail: false | ThumbnailOptions;
   openInNewTab: boolean;
 };
 
@@ -42,32 +43,39 @@ export function renderLinkCard(
     ]),
   ]);
 
-  return element(
-    "a",
-    {
-      className: ["satteri-link-card"],
-      href: metadata.url,
-      ...(options.openInNewTab ? { rel: ["noopener", "noreferrer"], target: "_blank" } : {}),
-    },
-    [
-      body,
-      ...(metadata.image
-        ? [
-            element("span", { className: ["satteri-link-card__media"] }, [
-              element(
-                "img",
-                {
-                  alt: "",
-                  className: ["satteri-link-card__image"],
-                  decoding: "async",
-                  loading: "lazy",
-                  src: metadata.image,
-                },
-                [],
-              ),
-            ]),
-          ]
-        : []),
-    ],
-  );
+  function createLinkCard(children: HastElement[]): HastElement {
+    return element(
+      "a",
+      {
+        className: ["satteri-link-card"],
+        href: metadata.url,
+        ...(options.openInNewTab ? { rel: ["noopener", "noreferrer"], target: "_blank" } : {}),
+      },
+      [...children],
+    );
+  }
+
+  function createMedia(src: string): HastElement {
+    return element("span", { className: ["satteri-link-card__media"] }, [
+      element(
+        "img",
+        {
+          alt: "",
+          className: ["satteri-link-card__image"],
+          decoding: "async",
+          loading: "lazy",
+          src,
+        },
+        [],
+      ),
+    ]);
+  }
+
+  return metadata.image !== undefined && options.thumbnail !== false
+    ? createLinkCard(
+        options.thumbnail.position === "right"
+          ? [body, createMedia(metadata.image)]
+          : [createMedia(metadata.image), body],
+      )
+    : createLinkCard([body]);
 }
