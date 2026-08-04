@@ -1,10 +1,16 @@
 /*
  * Optional presentation preset. The plugin only emits class names so callers
  * can omit this file and provide their own design system instead.
+ *
+ * The component selectors keep the card's layout stable in typography-heavy
+ * contexts. In particular, image margins from article-wide rules must not
+ * change the card geometry.
  */
 a.satteri-link-card {
   display: grid;
+  box-sizing: border-box;
   grid-template-columns: minmax(0, 1fr) clamp(12rem, 35%, 16rem);
+  min-width: 0;
   min-height: 7rem;
   margin-bottom: 1.75rem;
   overflow: hidden;
@@ -26,9 +32,10 @@ a.satteri-link-card:hover {
   text-decoration: none;
 }
 
-:where(.satteri-link-card__body) {
+a.satteri-link-card .satteri-link-card__body {
   display: flex;
   min-width: 0;
+  min-height: 0;
   padding: 1rem;
   flex-direction: column;
 }
@@ -70,15 +77,17 @@ a.satteri-link-card:hover {
   line-height: 1.3;
 }
 
-:where(.satteri-link-card__favicon) {
+img.satteri-link-card__favicon {
   display: block;
   width: 1em;
   height: 1em;
+  margin: 0;
+  padding: 0;
   flex: 0 0 auto;
   object-fit: contain;
 }
 
-:where(.satteri-link-card__media) {
+.satteri-link-card__media {
   display: block;
   position: relative;
   width: 100%;
@@ -99,13 +108,22 @@ img.satteri-link-card__image {
 }
 
 @media (width < 30rem) {
-  a.satteri-link-card {
-    grid-template-columns: minmax(0, 1fr) auto;
+  a.satteri-link-card:has(.satteri-link-card__media) {
+    grid-template-columns: minmax(0, 1fr) 7.5rem;
+    height: 7.5rem;
+    min-height: 0;
   }
 
-  :where(.satteri-link-card__media) {
-    /* Keep the media square on narrow screens while the card width responds. */
-    width: auto;
+  a.satteri-link-card .satteri-link-card__body {
+    padding: 0.75rem;
+    overflow: hidden;
+  }
+
+  :where(.satteri-link-card__description) {
+    -webkit-line-clamp: 1;
+  }
+
+  .satteri-link-card__media {
     height: 100%;
     aspect-ratio: 1;
     align-self: stretch;
