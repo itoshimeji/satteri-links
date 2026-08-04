@@ -1,6 +1,6 @@
 {
   "name": "satteri-link-card",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Build-time link cards for Sätteri Markdown.",
   "keywords": [
     "astro",
