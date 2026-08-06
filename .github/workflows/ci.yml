@@ -15,12 +15,11 @@ jobs:
       matrix:
         node-version: [22, 24]
     steps:
-      - uses: actions/checkout@v4
-      - uses: voidzero-dev/setup-vp@v1
+      - uses: actions/checkout@v6
+      - uses: voidzero-dev/setup-vp@v1.17.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: true
-      - run: vp install --frozen-lockfile
       - run: vp check
       - run: vp test
       - run: vp pack
