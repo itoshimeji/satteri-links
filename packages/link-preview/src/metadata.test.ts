@@ -1,22 +1,14 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import { extractMetadata, fetchMetadata } from "./metadata.ts";
-import type { ResolvedSatteriLinkCardOptions } from "./types.ts";
+import { extractMetadata, fetchMetadata, type MetadataFetchOptions } from "./metadata.ts";
 
 function options(
   fetch: typeof globalThis.fetch,
-  overrides: Partial<ResolvedSatteriLinkCardOptions> = {},
-): ResolvedSatteriLinkCardOptions {
+  overrides: Partial<MetadataFetchOptions> = {},
+): MetadataFetchOptions {
   return {
-    metadataCache: false,
     fetch,
-    maxResponseBytes: 1024,
-    timeout: 100,
-    shortenUrl: true,
-    thumbnail: { position: "right" },
-    favicon: true,
-    ignoreExtensions: [],
-    openInNewTab: true,
-    imageCache: false,
+    maxBytes: 1024,
+    timeoutMs: 100,
     ...overrides,
   };
 }
@@ -136,16 +128,10 @@ describe("fetchMetadata", () => {
     const streamed = vi.fn<typeof globalThis.fetch>().mockResolvedValue(htmlResponse("12345"));
 
     await expect(
-      fetchMetadata(
-        new URL("https://example.com/declared"),
-        options(declared, { maxResponseBytes: 4 }),
-      ),
+      fetchMetadata(new URL("https://example.com/declared"), options(declared, { maxBytes: 4 })),
     ).rejects.toThrow("too large");
     await expect(
-      fetchMetadata(
-        new URL("https://example.com/streamed"),
-        options(streamed, { maxResponseBytes: 4 }),
-      ),
+      fetchMetadata(new URL("https://example.com/streamed"), options(streamed, { maxBytes: 4 })),
     ).rejects.toThrow("too large");
   });
 
@@ -160,7 +146,7 @@ describe("fetchMetadata", () => {
     );
 
     await expect(
-      fetchMetadata(new URL("https://example.com/slow"), options(fetch, { timeout: 1 })),
+      fetchMetadata(new URL("https://example.com/slow"), options(fetch, { timeoutMs: 1 })),
     ).rejects.toThrow();
     expect(fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
   });

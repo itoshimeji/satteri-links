@@ -1,15 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ImageCacheStore, ImageInput } from "./types.js";
-
-export type FileSystemImageCacheOptions = {
-  directory?: string;
-  publicPath?: string;
-};
-
-const DEFAULT_DIRECTORY = "public/satteri-link-card";
-const DEFAULT_PUBLIC_PATH = "/satteri-link-card";
+import type { FileSystemImageCacheStoreOptions, ImageCacheStore, ImageInput } from "./types.js";
 
 const CONTENT_TYPE_EXTENSIONS: Record<string, string> = {
   "image/avif": "avif",
@@ -51,10 +43,10 @@ function publicSource(publicPath: string, sourceUrl: URL, filename: string): str
 }
 
 export function createFileSystemImageCacheStore(
-  options: FileSystemImageCacheOptions = {},
+  options: FileSystemImageCacheStoreOptions,
 ): ImageCacheStore {
-  const directory = options.directory ?? DEFAULT_DIRECTORY;
-  const publicPath = normalizePublicPath(options.publicPath ?? DEFAULT_PUBLIC_PATH);
+  const directory = options.directory;
+  const publicPath = normalizePublicPath(options.publicPath);
 
   return {
     async get(sourceUrl) {

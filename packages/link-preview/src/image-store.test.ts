@@ -15,7 +15,7 @@ afterEach(async () => {
 });
 
 async function temporaryDirectory(): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), "satteri-link-card-images-"));
+  const directory = await mkdtemp(join(tmpdir(), "link-preview-images-"));
   temporaryDirectories.push(directory);
   return directory;
 }
@@ -47,26 +47,35 @@ describe("createFileSystemImageCacheStore", () => {
 
   test("returns undefined when an image has not been cached", async () => {
     const directory = await temporaryDirectory();
-    const store = createFileSystemImageCacheStore({ directory });
+    const store = createFileSystemImageCacheStore({
+      directory,
+      publicPath: "/assets/cards",
+    });
 
     expect(await store.get(new URL("https://example.com/missing"))).toBeUndefined();
   });
 
-  test("uses the public image cache path by default", async () => {
+  test("normalizes the configured public path", async () => {
     const directory = await temporaryDirectory();
-    const store = createFileSystemImageCacheStore({ directory });
+    const store = createFileSystemImageCacheStore({
+      directory,
+      publicPath: "assets/cards/",
+    });
 
     const cached = await store.put(new URL("https://example.com/card"), {
       bytes: Uint8Array.from([1]),
       contentType: "image/webp",
     });
 
-    expect(cached.src).toMatch(/^\/satteri-link-card\/[a-f0-9]{64}\/asset\.webp$/);
+    expect(cached.src).toMatch(/^\/assets\/cards\/[a-f0-9]{64}\/asset\.webp$/);
   });
 
   test("rejects unsupported content types", async () => {
     const directory = await temporaryDirectory();
-    const store = createFileSystemImageCacheStore({ directory });
+    const store = createFileSystemImageCacheStore({
+      directory,
+      publicPath: "/assets/cards",
+    });
 
     await expect(
       store.put(new URL("https://example.com/card"), {

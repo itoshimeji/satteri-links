@@ -1,10 +1,10 @@
-export type LinkMetadata = {
-  url: string;
-  title: string;
-  description?: string;
-  image?: string;
-  favicon?: string;
-};
+import type {
+  FileSystemMetadataCacheOptions,
+  ImageCacheStore,
+  LinkMetadata,
+} from "@itoshinji/link-preview";
+
+export type { LinkMetadata };
 
 export type MetadataCacheOptions = {
   directory?: string;
@@ -20,30 +20,13 @@ export type MetadataTransformer = (
   url: URL,
 ) => LinkMetadata | Promise<LinkMetadata>;
 
-export type ImageInput = {
-  bytes: Uint8Array;
-  contentType: string;
-};
-
-export type CachedImage = {
-  src: string;
-};
-
-export interface ImageCacheStore {
-  get(sourceUrl: URL): Promise<CachedImage | undefined>;
-  put(sourceUrl: URL, image: ImageInput): Promise<CachedImage>;
-}
-
 export type ImageCacheOptions = {
   store?: ImageCacheStore;
-  maxBytes?: number;
+  maxImageBytes?: number;
 };
 
 export type SatteriLinkCardOptions = {
   metadataCache?: MetadataCacheOptions | false;
-  fetch?: typeof globalThis.fetch;
-  maxResponseBytes?: number;
-  timeout?: number;
   shortenUrl?: boolean;
   thumbnail?: false | ThumbnailOptions;
   favicon?: false;
@@ -54,15 +37,12 @@ export type SatteriLinkCardOptions = {
 };
 
 export type ResolvedSatteriLinkCardOptions = {
-  metadataCache: MetadataCacheOptions | false;
-  fetch: typeof globalThis.fetch;
-  maxResponseBytes: number;
-  timeout: number;
+  metadataCache: false | FileSystemMetadataCacheOptions;
   shortenUrl: boolean;
   thumbnail: false | ThumbnailOptions;
   favicon: boolean;
   ignoreExtensions: string[];
   transformMetadata?: MetadataTransformer;
-  imageCache: false | Required<ImageCacheOptions>;
+  imageCache: false | { store: ImageCacheStore; maxImageBytes?: number };
   openInNewTab: boolean;
 };

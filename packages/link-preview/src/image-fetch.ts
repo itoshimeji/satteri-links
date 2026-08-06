@@ -1,11 +1,5 @@
 import type { ImageInput } from "./types.js";
 
-export type ImageFetchOptions = {
-  fetch: typeof globalThis.fetch;
-  maxBytes: number;
-  timeout: number;
-};
-
 const IMAGE_CONTENT_TYPES = new Set([
   "image/avif",
   "image/gif",
@@ -23,11 +17,11 @@ function declaredContentType(response: Response): string {
 async function readResponseBytes(response: Response, maxBytes: number): Promise<Uint8Array> {
   const declaredLength = Number(response.headers.get("content-length"));
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-    throw new Error("Link card image is too large");
+    throw new Error("Link preview image is too large");
   }
 
   if (!response.body) {
-    throw new Error("Link card image response has no body");
+    throw new Error("Link preview image response has no body");
   }
 
   const reader = response.body.getReader();
@@ -43,7 +37,7 @@ async function readResponseBytes(response: Response, maxBytes: number): Promise<
     bytesRead += value.byteLength;
     if (bytesRead > maxBytes) {
       await reader.cancel();
-      throw new Error("Link card image is too large");
+      throw new Error("Link preview image is too large");
     }
     chunks.push(value);
   }
@@ -57,27 +51,33 @@ async function readResponseBytes(response: Response, maxBytes: number): Promise<
   return bytes;
 }
 
+export type ImageFetchOptions = {
+  fetch: typeof globalThis.fetch;
+  maxBytes: number;
+  timeoutMs: number;
+};
+
 export async function fetchImage(url: URL, options: ImageFetchOptions): Promise<ImageInput> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), options.timeout);
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
 
   try {
     if (url.protocol !== "http:" && url.protocol !== "https:") {
-      throw new Error("Link card image URL must use HTTP or HTTPS");
+      throw new Error("Link preview image URL must use HTTP or HTTPS");
     }
 
     const response = await options.fetch(url, {
-      headers: { accept: "image/*", "user-agent": "satteri-link-card" },
+      headers: { accept: "image/*", "user-agent": "itoshinji-link-preview" },
       signal: controller.signal,
     });
     if (!response.ok) {
-      throw new Error(`Link card image request failed with ${response.status}`);
+      throw new Error(`Link preview image request failed with ${response.status}`);
     }
 
     const responseContentType = declaredContentType(response);
     if (!IMAGE_CONTENT_TYPES.has(responseContentType)) {
       throw new Error(
-        `Unsupported link card image content type: ${responseContentType || "unknown"}`,
+        `Unsupported link preview image content type: ${responseContentType || "unknown"}`,
       );
     }
 

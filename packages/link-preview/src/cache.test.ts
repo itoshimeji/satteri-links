@@ -12,7 +12,7 @@ const metadata: LinkMetadata = {
 };
 
 async function temporaryDirectory(): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), "satteri-link-card-cache-"));
+  const directory = await mkdtemp(join(tmpdir(), "link-preview-cache-"));
   temporaryDirectories.push(directory);
   return directory;
 }

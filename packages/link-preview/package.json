@@ -1,0 +1,53 @@
+{
+  "name": "@itoshinji/link-preview",
+  "version": "0.1.0",
+  "description": "Build-time metadata and image resolution for link previews.",
+  "keywords": [
+    "link-preview",
+    "metadata",
+    "open-graph"
+  ],
+  "homepage": "https://github.com/ItoShimeji/satteri-links#readme",
+  "bugs": {
+    "url": "https://github.com/ItoShimeji/satteri-links/issues"
+  },
+  "license": "MIT",
+  "author": "Daichi Hamazaki (https://github.com/itoshimeji)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ItoShimeji/satteri-links.git",
+    "directory": "packages/link-preview"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "types": "./dist/index.d.mts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs"
+      }
+    },
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp check && vp test && vp pack",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "parse5": "^8.0.1"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,65 +1,19 @@
 {
-  "name": "satteri-link-card",
-  "version": "0.2.1",
-  "description": "Build-time link cards for Sätteri Markdown.",
-  "keywords": [
-    "astro",
-    "link-card",
-    "markdown",
-    "open-graph",
-    "satteri"
-  ],
-  "homepage": "https://github.com/ItoShimeji/satteri-link-card#readme",
-  "bugs": {
-    "url": "https://github.com/ItoShimeji/satteri-link-card/issues"
-  },
-  "license": "MIT",
-  "author": "Daichi Hamazaki (https://github.com/itoshimeji)",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ItoShimeji/satteri-link-card.git"
-  },
-  "files": [
-    "dist",
-    "preset.css"
-  ],
+  "name": "satteri-links",
+  "private": true,
   "type": "module",
-  "sideEffects": [
-    "./preset.css"
-  ],
-  "types": "./dist/index.d.mts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
-    },
-    "./preset.css": "./preset.css",
-    "./package.json": "./package.json"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "build": "vp pack",
-    "dev": "vp pack --watch",
-    "test": "vp test",
-    "check": "vp check",
-    "prepublishOnly": "vp check && vp test && vp pack",
-    "prepare": "vp config"
-  },
-  "dependencies": {
-    "parse5": "^8.0.1"
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "test": "pnpm -r test",
+    "check": "pnpm -r check"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
     "bumpp": "^11.1.0",
-    "satteri": "^0.9.5",
     "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
-  },
-  "peerDependencies": {
-    "satteri": "^0.9.5"
   },
   "devEngines": {
     "packageManager": {

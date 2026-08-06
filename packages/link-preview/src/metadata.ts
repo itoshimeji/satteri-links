@@ -1,5 +1,11 @@
 import { type DefaultTreeAdapterTypes, parse } from "parse5";
-import type { LinkMetadata, ResolvedSatteriLinkCardOptions } from "./types.js";
+import type { LinkMetadata } from "./types.js";
+
+export type MetadataFetchOptions = {
+  fetch: typeof globalThis.fetch;
+  maxBytes: number;
+  timeoutMs: number;
+};
 
 type HtmlNode = DefaultTreeAdapterTypes.Node;
 type HtmlElement = DefaultTreeAdapterTypes.Element;
@@ -72,7 +78,7 @@ function resolveHttpUrl(value: string | undefined, base: URL): string | undefine
     // Open Graph image values may be absolute, root-relative, or relative to
     // the fetched document. URL resolves all three forms without string joins.
     const url = new URL(value, base);
-    // Link cards deliberately reject data:, file:, and other non-web schemes.
+    // Link previews deliberately reject data:, file:, and other non-web schemes.
     if (url.protocol === "http:" || url.protocol === "https:") {
       return url.href;
     }
@@ -151,15 +157,15 @@ export function extractMetadata(html: string, documentUrl: URL): ExtractedMetada
   };
 }
 
-async function readResponseText(response: Response, maxResponseBytes: number): Promise<string> {
+async function readResponseText(response: Response, maxBytes: number): Promise<string> {
   // response.text() would buffer the entire body before its size could be
   // checked. Reading chunks lets the build stop downloading and buffering as
   // soon as an unexpectedly large page crosses the configured limit.
   // Content-Length is an inexpensive early check, but it is optional and can
   // be absent. The streaming check below protects responses with no length.
   const declaredLength = Number(response.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > maxResponseBytes) {
-    throw new Error("Link card response is too large");
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new Error("Link preview response is too large");
   }
 
   if (!response.body) {
@@ -178,11 +184,11 @@ async function readResponseText(response: Response, maxResponseBytes: number): P
     }
 
     bytesRead += value.byteLength;
-    if (bytesRead > maxResponseBytes) {
+    if (bytesRead > maxBytes) {
       // Cancel as soon as the limit is crossed instead of buffering the rest
       // of a response that can never produce a card.
       await reader.cancel();
-      throw new Error("Link card response is too large");
+      throw new Error("Link preview response is too large");
     }
 
     // A UTF-8 character may be split across response chunks. Streaming decode
@@ -197,33 +203,33 @@ async function readResponseText(response: Response, maxResponseBytes: number): P
 
 export async function fetchMetadata(
   url: URL,
-  options: ResolvedSatteriLinkCardOptions,
+  options: MetadataFetchOptions,
 ): Promise<LinkMetadata> {
   // The caller owns the fetch implementation so it can add access control,
   // proxying, retries, or SSRF protection while this plugin still enforces a
   // timeout and HTML/size constraints around the request.
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), options.timeout);
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
 
   try {
     const response = await options.fetch(url, {
       headers: {
         accept: "text/html,application/xhtml+xml",
-        "user-agent": "satteri-link-card",
+        "user-agent": "itoshinji-link-preview",
       },
       signal: controller.signal,
     });
 
     if (!response.ok) {
-      throw new Error(`Link card request failed with ${response.status}`);
+      throw new Error(`Link preview request failed with ${response.status}`);
     }
 
     const contentType = response.headers.get("content-type")?.toLowerCase();
     if (!contentType?.includes("text/html") && !contentType?.includes("application/xhtml+xml")) {
-      throw new Error("Link card response is not HTML");
+      throw new Error("Link preview response is not HTML");
     }
 
-    const html = await readResponseText(response, options.maxResponseBytes);
+    const html = await readResponseText(response, options.maxBytes);
     const responseUrl = response.url ? new URL(response.url) : url;
     // These URLs intentionally serve different roles. The final response URL
     // is only parsing context for relative assets and hostname fallbacks; the

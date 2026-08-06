@@ -9,6 +9,7 @@ import { createFileSystemImageCacheStore } from "./image-store.ts";
 const temporaryDirectories: string[] = [];
 
 afterEach(async () => {
+  vi.unstubAllGlobals();
   await Promise.all(
     temporaryDirectories
       .splice(0)
@@ -40,8 +41,9 @@ async function render(
   fetch: typeof globalThis.fetch,
   metadataCache: false | { directory: string } = false,
 ): Promise<string> {
+  vi.stubGlobal("fetch", fetch);
   const result = await markdownToHtml(markdown, {
-    hastPlugins: [satteriLinkCard({ metadataCache, fetch })],
+    hastPlugins: [satteriLinkCard({ metadataCache })],
   });
   return result.html;
 }
@@ -80,11 +82,11 @@ describe("satteriLinkCard", () => {
 
   test("leaves ignored extensions unchanged without fetching metadata", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", fetch);
     const result = await markdownToHtml("https://example.com/video.mp4", {
       hastPlugins: [
         satteriLinkCard({
           metadataCache: false,
-          fetch,
           ignoreExtensions: [".mp4"],
         }),
       ],
@@ -102,8 +104,9 @@ describe("satteriLinkCard", () => {
       .mockResolvedValue(
         htmlResponse('<title>Example</title><link rel="icon" href="/favicon.ico">'),
       );
+    vi.stubGlobal("fetch", fetch);
     const result = await markdownToHtml("https://example.com/article", {
-      hastPlugins: [satteriLinkCard({ metadataCache: false, fetch })],
+      hastPlugins: [satteriLinkCard({ metadataCache: false })],
     });
 
     expect(result.html).toContain('class="satteri-link-card__favicon"');
@@ -114,11 +117,11 @@ describe("satteriLinkCard", () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValue(htmlResponse("<title>Original title</title>"));
+    vi.stubGlobal("fetch", fetch);
     const result = await markdownToHtml("https://example.com/article", {
       hastPlugins: [
         satteriLinkCard({
           metadataCache: false,
-          fetch,
           transformMetadata: async (metadata) => ({
             ...metadata,
             title: "Transformed title",
@@ -139,8 +142,9 @@ describe("satteriLinkCard", () => {
       .mockResolvedValue(
         htmlResponse('<title>Example</title><link rel="icon" href="/favicon.ico">'),
       );
+    vi.stubGlobal("fetch", fetch);
     const result = await markdownToHtml("https://example.com/article", {
-      hastPlugins: [satteriLinkCard({ metadataCache: false, fetch, favicon: false })],
+      hastPlugins: [satteriLinkCard({ metadataCache: false, favicon: false })],
     });
 
     expect(result.html).not.toContain("satteri-link-card__favicon");
@@ -168,9 +172,9 @@ describe("satteriLinkCard", () => {
       }
       throw new Error(`Unexpected URL: ${href}`);
     });
+    vi.stubGlobal("fetch", fetch);
     const plugin = satteriLinkCard({
       metadataCache: false,
-      fetch,
       imageCache: { store: imageStore },
     });
 
@@ -194,6 +198,37 @@ describe("satteriLinkCard", () => {
         ([input]) => inputUrl(input) === "https://cdn.example.com/favicon.ico",
       ),
     ).toHaveLength(1);
+  });
+
+  test("exposes one image size limit for cache downloads", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "satteri-link-card-images-"));
+    temporaryDirectories.push(directory);
+    const imageStore = createFileSystemImageCacheStore({
+      directory,
+      publicPath: "/assets/cards",
+    });
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async (input) => {
+      const href = inputUrl(input);
+      if (href === "https://example.com/article") {
+        return htmlResponse(
+          '<meta property="og:image" content="https://cdn.example.com/card.png">',
+        );
+      }
+      return imageResponse([1, 2, 3], "image/png");
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [
+        satteriLinkCard({
+          metadataCache: false,
+          imageCache: { maxImageBytes: 2, store: imageStore },
+        }),
+      ],
+    });
+
+    expect(result.html).toContain('src="https://cdn.example.com/card.png"');
+    expect(result.html).not.toContain("/assets/cards/");
   });
 
   test("keeps the original link when metadata fetching fails", async () => {
@@ -227,7 +262,8 @@ describe("satteriLinkCard", () => {
       resolveResponse = resolve;
     });
     const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(() => response);
-    const plugin = satteriLinkCard({ metadataCache: false, fetch });
+    vi.stubGlobal("fetch", fetch);
+    const plugin = satteriLinkCard({ metadataCache: false });
     const renderOne = markdownToHtml("https://example.com/shared", {
       hastPlugins: [plugin],
     });

@@ -205,6 +205,9 @@ settings:
 
 catalogs:
   default:
+    satteri:
+      specifier: 0.9.5
+      version: 0.9.5
     vite-plus:
       specifier: 0.2.7
       version: 0.2.7
@@ -215,10 +218,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      parse5:
-        specifier: ^8.0.1
-        version: 8.0.1
     devDependencies:
       '@types/node':
         specifier: ^26.1.1
@@ -226,9 +225,6 @@ importers:
       bumpp:
         specifier: ^11.1.0
         version: 11.1.0
-      satteri:
-        specifier: ^0.9.5
-        version: 0.9.5
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -238,6 +234,22 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.2.7(@types/node@26.1.2)(@voidzero-dev/vite-plus-core@0.2.7(@types/node@26.1.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0))(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0)
+
+  packages/link-preview:
+    dependencies:
+      parse5:
+        specifier: ^8.0.1
+        version: 8.0.1
+
+  packages/link-card:
+    dependencies:
+      '@itoshinji/link-preview':
+        specifier: workspace:*
+        version: link:../link-preview
+    devDependencies:
+      satteri:
+        specifier: 'catalog:'
+        version: 0.9.5
 
 packages:
 

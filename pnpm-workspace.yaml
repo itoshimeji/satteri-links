@@ -1,6 +1,7 @@
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@0.2.7
   vite-plus: 0.2.7
+  satteri: 0.9.5
 overrides:
   vite: "catalog:"
 peerDependencyRules:
@@ -8,3 +9,6 @@ peerDependencyRules:
     - vite
   allowedVersions:
     vite: "*"
+packages:
+  - "packages/*"
+  - "examples/*"

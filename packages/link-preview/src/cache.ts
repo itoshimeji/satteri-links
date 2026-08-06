@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { LinkMetadata, MetadataCacheOptions } from "./types.js";
+import type { FileSystemMetadataCacheOptions, LinkMetadata } from "./types.js";
 
 type CacheEntry = {
   version: 1;
@@ -11,7 +11,6 @@ type CacheEntry = {
 };
 
 const CACHE_VERSION = 1;
-const DEFAULT_CACHE_DIRECTORY = ".cache/satteri-link-card";
 const DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
 function isCacheEntry(value: unknown): value is CacheEntry {
@@ -34,8 +33,8 @@ export class MetadataCache {
   readonly #directory: string;
   readonly #maxAge: number | false;
 
-  constructor(options: MetadataCacheOptions = {}) {
-    this.#directory = options.directory ?? DEFAULT_CACHE_DIRECTORY;
+  constructor(options: FileSystemMetadataCacheOptions) {
+    this.#directory = options.directory;
     this.#maxAge = options.maxAge ?? DEFAULT_MAX_AGE;
   }
 

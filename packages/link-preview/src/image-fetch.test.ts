@@ -15,7 +15,7 @@ function options(
   fetch: typeof globalThis.fetch,
   overrides: Partial<Parameters<typeof fetchImage>[1]> = {},
 ): Parameters<typeof fetchImage>[1] {
-  return { fetch, maxBytes: 1024, timeout: 100, ...overrides };
+  return { fetch, maxBytes: 1024, timeoutMs: 100, ...overrides };
 }
 
 describe("fetchImage", () => {
@@ -48,9 +48,9 @@ describe("fetchImage", () => {
     ).rejects.toThrow("404");
     await expect(
       fetchImage(new URL("https://example.com/text"), options(nonImage)),
-    ).rejects.toThrow("Unsupported link card image content type");
+    ).rejects.toThrow("Unsupported link preview image content type");
     await expect(fetchImage(new URL("https://example.com/icon.svg"), options(svg))).rejects.toThrow(
-      "Unsupported link card image content type",
+      "Unsupported link preview image content type",
     );
   });
 
@@ -81,7 +81,7 @@ describe("fetchImage", () => {
     );
 
     await expect(
-      fetchImage(new URL("https://example.com/slow"), options(fetch, { timeout: 1 })),
+      fetchImage(new URL("https://example.com/slow"), options(fetch, { timeoutMs: 1 })),
     ).rejects.toThrow();
     expect(fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
   });
