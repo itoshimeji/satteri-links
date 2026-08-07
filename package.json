@@ -6,7 +6,10 @@
     "build": "pnpm -r build",
     "dev": "pnpm -r --parallel dev",
     "test": "pnpm -r test",
-    "check": "pnpm -r check"
+    "check": "pnpm -r check",
+    "release:card": "bumpp packages/link-card/package.json --no-push --commit \"chore: release satteri-link-card v%s\" --tag \"satteri-link-card-v%s\"",
+    "release:mention": "bumpp packages/link-mention/package.json --no-push --commit \"chore: release satteri-link-mention v%s\" --tag \"satteri-link-mention-v%s\"",
+    "release:preview": "bumpp packages/link-preview/package.json --no-push --commit \"chore: release @itoshinji/link-preview v%s\" --tag \"link-preview-v%s\""
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
