@@ -40,28 +40,30 @@ a.satteri-link-card .satteri-link-card__body {
   flex-direction: column;
 }
 
-:where(.satteri-link-card__title, .satteri-link-card__description, .satteri-link-card__host) {
+.satteri-link-card__title,
+.satteri-link-card__description,
+.satteri-link-card__host {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
 }
 
-:where(.satteri-link-card__title) {
+.satteri-link-card__title {
   -webkit-line-clamp: 2;
-  font-size: 1rem;
+  font-size: 1em;
   font-weight: 600;
   line-height: 1.45;
 }
 
-:where(.satteri-link-card__description) {
+.satteri-link-card__description {
   margin-top: 0.2rem;
   -webkit-line-clamp: 2;
   color: #666;
-  font-size: 0.8rem;
+  font-size: 0.8em;
   line-height: 1.5;
 }
 
-:where(.satteri-link-card__meta) {
+.satteri-link-card__meta {
   display: flex;
   min-width: 0;
   margin-top: auto;
@@ -70,10 +72,10 @@ a.satteri-link-card .satteri-link-card__body {
   gap: 0.35rem;
 }
 
-:where(.satteri-link-card__host) {
+.satteri-link-card__host {
   min-width: 0;
   -webkit-line-clamp: 1;
-  font-size: 0.8rem;
+  font-size: 0.8em;
   line-height: 1.3;
 }
 
@@ -119,7 +121,7 @@ img.satteri-link-card__image {
     overflow: hidden;
   }
 
-  :where(.satteri-link-card__description) {
+  .satteri-link-card__description {
     -webkit-line-clamp: 1;
   }
 
