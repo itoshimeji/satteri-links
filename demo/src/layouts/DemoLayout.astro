@@ -1,0 +1,48 @@
+---
+import "../styles/global.css";
+
+interface Frontmatter {
+	title?: string;
+	description?: string;
+}
+
+interface Props {
+	title?: string;
+	description?: string;
+	frontmatter?: Frontmatter;
+}
+
+const { frontmatter, title: propTitle, description: propDescription } = Astro.props;
+const title = propTitle ?? frontmatter?.title ?? "satteri links";
+const description = propDescription ?? frontmatter?.description ?? "Small Sätteri link plugins.";
+---
+
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="description" content={description} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<title>{title} · satteri links</title>
+	</head>
+	<body>
+		<header>
+			<p><a href="/"><strong>satteri links</strong></a></p>
+			<nav aria-label="Main navigation">
+				<a href="/">Home</a> · <a href="/link-card/">Link Card</a> ·
+				<a href="/link-mention/">Link Mention</a>
+			</nav>
+		</header>
+		<hr />
+
+		<main class="markdown-body">
+			<slot />
+		</main>
+
+		<hr />
+		<footer>
+			<small><a href="https://github.com/ItoShimeji/satteri-links">satteri links on GitHub</a></small>
+		</footer>
+	</body>
+</html>

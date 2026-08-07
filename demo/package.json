@@ -1,0 +1,25 @@
+{
+  "name": "satteri-links-demo",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "pnpm build && wrangler deploy",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.2.0",
+    "@astrojs/mdx": "^7.0.5",
+    "astro": "^7.2.0",
+    "github-markdown-css": "^5.9.0",
+    "satteri": "catalog:",
+    "satteri-link-card": "workspace:*",
+    "satteri-link-mention": "workspace:*",
+    "wrangler": "^4.119.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

@@ -1,0 +1,146 @@
+import { markdownToHtml } from "satteri";
+import { satteriLinkCard } from "satteri-link-card";
+import "satteri-link-card/preset.css";
+import DemoLayout from "../layouts/DemoLayout.astro";
+
+export async function renderCard(source, options = {}) {
+  return markdownToHtml(source, {
+    hastPlugins: [satteriLinkCard(options)],
+  });
+}
+
+export const defaultSource = "https://github.com/ItoShimeji/satteri-links";
+export const noThumbnailSource = "https://astro.build/";
+export const leftThumbnailSource = "https://astro.build/";
+export const fullUrlSource = "https://github.com/ItoShimeji/satteri-links";
+export const noFaviconSource = "https://astro.build/";
+export const ignoredExtensionSource = "https://example.com/manual.pdf";
+export const inlineLinkSource = "Visit [Astro](https://astro.build/) for more.";
+export const linksInListSource =
+  "- [GitHub](https://github.com/ItoShimeji/satteri-links)\n- [Astro](https://astro.build/)";
+export const multipleLinksSource =
+  "https://github.com/ItoShimeji/satteri-links https://astro.build/";
+
+export const defaultCard = await renderCard(defaultSource);
+export const noThumbnail = await renderCard(noThumbnailSource, { thumbnail: false });
+export const leftThumbnail = await renderCard(leftThumbnailSource, {
+  thumbnail: { position: "left" },
+});
+export const fullUrl = await renderCard(fullUrlSource, { shortenUrl: false });
+export const noFavicon = await renderCard(noFaviconSource, { favicon: false });
+export const ignoredExtension = await renderCard(ignoredExtensionSource, {
+  ignoreExtensions: [".pdf", ".mp4"],
+});
+export const inlineLink = await renderCard(inlineLinkSource);
+export const linksInList = await renderCard(linksInListSource);
+export const multipleLinks = await renderCard(multipleLinksSource);
+
+<DemoLayout
+	title="satteri-link-card"
+	description="A simple demo of satteri-link-card."
+>
+
+# satteri-link-card
+
+Turn a standalone URL into a metadata-rich link card at build time.
+
+## Links converted to cards
+
+A URL in its own paragraph is replaced with a card.
+
+### 1. Bare URL on its own line
+
+The default card includes the title, description, favicon, thumbnail, and hostname.
+
+```markdown
+https://github.com/ItoShimeji/satteri-links
+```
+
+<Fragment set:html={defaultCard.html} />
+
+### 2. No thumbnail
+
+Setting `thumbnail` to `false` removes the preview image.
+
+```markdown
+https://astro.build/
+```
+
+<Fragment set:html={noThumbnail.html} />
+
+### 3. Thumbnail on the left
+
+The thumbnail can be placed before the card content.
+
+```markdown
+https://astro.build/
+```
+
+<Fragment set:html={leftThumbnail.html} />
+
+### 4. Full URL
+
+With `shortenUrl: false`, the card footer shows the complete URL.
+
+```markdown
+https://github.com/ItoShimeji/satteri-links
+```
+
+<Fragment set:html={fullUrl.html} />
+
+### 5. No favicon
+
+Setting `favicon` to `false` removes the favicon.
+
+```markdown
+https://astro.build/
+```
+
+<Fragment set:html={noFavicon.html} />
+
+## Links not converted to cards
+
+Only a bare HTTP(S) URL in a root-level paragraph is eligible.
+
+### 1. Ignored file extension
+
+URLs ending in `.pdf` or `.mp4` are left unchanged.
+
+```markdown
+https://example.com/manual.pdf
+```
+
+<Fragment set:html={ignoredExtension.html} />
+
+### 2. Link with text
+
+A link with authored text remains a normal Markdown link.
+
+```markdown
+Visit [Astro](https://astro.build/) for more.
+```
+
+<Fragment set:html={inlineLink.html} />
+
+### 3. Links inside a list
+
+Links inside list items are not root-level paragraphs.
+
+```markdown
+- [GitHub](https://github.com/ItoShimeji/satteri-links)
+- [Astro](https://astro.build/)
+```
+
+<Fragment set:html={linksInList.html} />
+
+### 4. Multiple links in one paragraph
+
+A paragraph containing more than one link is left as written.
+
+```markdown
+https://github.com/ItoShimeji/satteri-links https://astro.build/
+```
+
+<Fragment set:html={multipleLinks.html} />
+
+</DemoLayout>

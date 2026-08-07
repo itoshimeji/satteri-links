@@ -1,0 +1,123 @@
+import { markdownToHtml } from "satteri";
+import { satteriLinkMention } from "satteri-link-mention";
+import "satteri-link-mention/preset.css";
+import DemoLayout from "../layouts/DemoLayout.astro";
+
+export async function renderMention(source, options = {}) {
+  return markdownToHtml(source, {
+    hastPlugins: [satteriLinkMention(options)],
+  });
+}
+
+export const defaultSource = "This project is [](https://github.com/ItoShimeji/satteri-links).";
+export const siteNameFirstSource = "Visit [](https://github.com/ItoShimeji/satteri-links).";
+export const noFaviconSource = "Sätteri is [](https://satteri.bruits.org/).";
+export const titleOnlySource = "Astro is [](https://astro.build/).";
+export const linkWithTextSource = "This is the [Sätteri website](https://satteri.bruits.org/).";
+export const bareUrlSource = "https://astro.build/";
+export const linksInListSource =
+  "- [GitHub](https://github.com/ItoShimeji/satteri-links)\n- [Astro](https://astro.build/)";
+
+export const defaultMention = await renderMention(defaultSource);
+export const siteNameFirst = await renderMention(siteNameFirstSource, {
+  mention: { order: ["siteName", "title", "favicon"] },
+});
+export const noFavicon = await renderMention(noFaviconSource, {
+  mention: { favicon: false },
+});
+export const titleOnly = await renderMention(titleOnlySource, {
+  mention: { favicon: false, siteName: false, title: true },
+});
+export const linkWithText = await renderMention(linkWithTextSource);
+export const bareUrl = await renderMention(bareUrlSource);
+export const linksInList = await renderMention(linksInListSource);
+
+<DemoLayout
+	title="satteri-link-mention"
+	description="A simple demo of satteri-link-mention."
+>
+
+# satteri-link-mention
+
+Turn an empty Markdown link into an inline link mention at build time.
+
+## Links converted to mentions
+
+An empty link provides the URL; the plugin fills in the metadata.
+
+### 1. Empty Markdown link
+
+The default mention shows the favicon, site name, and title when available.
+
+```markdown
+This project is [](https://github.com/ItoShimeji/satteri-links).
+```
+
+<Fragment set:html={defaultMention.html} />
+
+### 2. Site name first
+
+The order of the parts can be changed with `mention.order`.
+
+```markdown
+Visit [](https://github.com/ItoShimeji/satteri-links).
+```
+
+<Fragment set:html={siteNameFirst.html} />
+
+### 3. No favicon
+
+Setting `mention.favicon` to `false` removes the favicon.
+
+```markdown
+Sätteri is [](https://satteri.bruits.org/).
+```
+
+<Fragment set:html={noFavicon.html} />
+
+### 4. Title only
+
+Individual parts can be disabled while keeping the title.
+
+```markdown
+Astro is [](https://astro.build/).
+```
+
+<Fragment set:html={titleOnly.html} />
+
+## Links not converted to mentions
+
+Only an empty Markdown link is a mention placeholder.
+
+### 1. Link with text
+
+A link with authored text keeps its original label.
+
+```markdown
+This is the [Sätteri website](https://satteri.bruits.org/).
+```
+
+<Fragment set:html={linkWithText.html} />
+
+### 2. Bare URL
+
+A bare URL is not an empty Markdown link.
+
+```markdown
+https://astro.build/
+```
+
+<Fragment set:html={bareUrl.html} />
+
+### 3. Links inside a list
+
+Regular links in a list are left as written.
+
+```markdown
+- [GitHub](https://github.com/ItoShimeji/satteri-links)
+- [Astro](https://astro.build/)
+```
+
+<Fragment set:html={linksInList.html} />
+
+</DemoLayout>

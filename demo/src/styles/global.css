@@ -1,0 +1,6 @@
+@import "github-markdown-css/github-markdown-light.css" layer(markdown);
+
+body {
+  max-width: 780px;
+  margin: 0 auto;
+}

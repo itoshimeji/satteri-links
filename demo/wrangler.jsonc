@@ -1,0 +1,13 @@
+{
+  "name": "satteri-links-demo",
+  "compatibility_date": "2026-08-07",
+  "assets": {
+    "directory": "./dist",
+  },
+  "routes": [
+    {
+      "pattern": "satteri-links.hamazaki.me",
+      "custom_domain": true,
+    },
+  ],
+}
