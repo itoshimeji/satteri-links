@@ -7,6 +7,8 @@ time.
 > This package is experimental. Its API, generated HTML, CSS class names, and
 > behavior may change incompatibly between releases.
 
+[View live examples](https://satteri-links.hamazaki.me/link-card/).
+
 ## ✨ Features
 
 - Resolves Open Graph, Twitter Card, and standard HTML metadata

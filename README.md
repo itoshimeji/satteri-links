@@ -31,18 +31,7 @@ instructions.
 The Astro demo shows the supported input, configuration, output, and current
 limitations of the two Sätteri feature packages.
 
-```sh
-pnpm --dir demo astro dev --background
-```
-
-## 🛠️ Development
-
-```sh
-vp install
-vp check
-vp test
-vp run build
-```
+<https://satteri-links.hamazaki.me>
 
 ## 📄 License
 

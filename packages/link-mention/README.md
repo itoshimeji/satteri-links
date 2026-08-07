@@ -7,6 +7,8 @@ at build time.
 > This package is experimental. Its API, generated HTML, CSS class names, and
 > behavior may change incompatibly between releases.
 
+[View live examples](https://satteri-links.hamazaki.me/link-mention/).
+
 ## ✨ Features
 
 - Uses an empty Markdown link as an explicit mention placeholder
