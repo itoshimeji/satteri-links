@@ -1,0 +1,47 @@
+import DemoLayout from "../layouts/DemoLayout.astro";
+
+<DemoLayout
+  title="Satteri Links"
+  description="Build-time link previews for Sätteri Markdown."
+>
+
+# Satteri Links
+
+Satteri Links is a set of build-time link plugins for
+[Sätteri](https://github.com/bruits/satteri).
+
+> **Experimental:** The APIs, generated HTML, CSS class names, and behavior may
+> change incompatibly between releases.
+
+## Packages
+
+### 🔗 [satteri-link-card](/link-card/)
+
+Converts a standalone URL into a card containing resolved page metadata.
+
+### 💬 [satteri-link-mention](/link-mention/)
+
+Converts an empty Markdown link into an inline mention containing resolved
+page metadata.
+
+## How it works
+
+The packages fetch metadata while Markdown or another content source is being
+processed. They do not fetch metadata in the visitor's browser.
+
+Use these packages with trusted URLs. Requests to private or local network
+addresses are not currently blocked.
+
+## Styling
+
+The feature packages emit class names but do not inject CSS. This demo imports
+the optional styles shipped with each package:
+
+```ts
+import "satteri-link-card/preset.css";
+import "satteri-link-mention/preset.css";
+```
+
+The preset is not required. A site can omit it and provide its own CSS.
+
+</DemoLayout>

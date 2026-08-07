@@ -1,6 +1,70 @@
 @import "github-markdown-css/github-markdown-light.css" layer(markdown);
 
+:root {
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 body {
-  max-width: 780px;
-  margin: 0 auto;
+  margin: 0;
+  color: #1f2328;
+  background: #fff;
+}
+
+.site-header,
+.markdown-body,
+.site-footer {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 780px);
+  margin-inline: auto;
+}
+
+.site-header {
+  padding-block: 1.5rem 1rem;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.site-title {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  margin-top: 0.75rem;
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
+}
+
+.site-nav a[aria-current="page"] {
+  color: #1f2328;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.markdown-body {
+  padding-block: 2rem 3rem;
+}
+
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body h2 {
+  margin-top: 2.5rem;
+}
+
+.markdown-body h3 {
+  margin-top: 1.75rem;
+}
+
+.markdown-body hr {
+  margin-block: 2.5rem;
+}
+
+.site-footer {
+  padding-block: 1rem 2rem;
+  border-top: 1px solid #d0d7de;
+  font-size: 0.875rem;
 }

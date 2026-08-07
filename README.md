@@ -3,26 +3,47 @@
 Link-related plugins for [Sätteri](https://github.com/bruits/satteri), developed
 and released from one monorepo.
 
-| Package                                              | Description                                               |
-| ---------------------------------------------------- | --------------------------------------------------------- |
-| [`satteri-link-card`](./packages/link-card)          | Turns a standalone URL into a link card at build time.    |
-| [`satteri-link-mention`](./packages/link-mention)    | Turns an empty Markdown link into an inline mention.      |
-| [`@itoshinji/link-preview`](./packages/link-preview) | Framework-independent link metadata and image resolution. |
+> [!WARNING]
+> This project is experimental. APIs, generated HTML, CSS class names, and
+> behavior may change incompatibly between releases.
 
-Most Satteri users should install a feature package such as `satteri-link-card` or
-`satteri-link-mention`.
-`@itoshinji/link-preview` is framework-independent and can also be used directly
-by other build-time integrations.
+## 📦 Packages
 
-## Development
+- 🔗 [`satteri-link-card`](./packages/link-card) turns a standalone URL into a
+  metadata-rich link card.
+- 💬 [`satteri-link-mention`](./packages/link-mention) turns an empty Markdown
+  link into an inline mention.
+- 🔎 [`@itoshinji/link-preview`](./packages/link-preview) resolves link metadata
+  and images without depending on Sätteri or Markdown.
+
+Install a feature package if you use Sätteri. Use `@itoshinji/link-preview`
+directly when building another integration.
+
+## 🌌 Astro
+
+The feature packages can be used in Astro through
+[`@astrojs/markdown-satteri`](https://github.com/ItoShimeji/markdown-satteri).
+Each package README includes the complete Astro configuration and styling
+instructions.
+
+## 🧪 Demo
+
+The Astro demo shows the supported input, configuration, output, and current
+limitations of the two Sätteri feature packages.
+
+```sh
+pnpm --dir demo astro dev --background
+```
+
+## 🛠️ Development
 
 ```sh
 vp install
-pnpm check
-pnpm test
-pnpm build
+vp check
+vp test
+vp run build
 ```
 
-## License
+## 📄 License
 
 [MIT](./LICENSE)

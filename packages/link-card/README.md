@@ -1,42 +1,30 @@
 # satteri-link-card
 
-A small Sätteri HAST plugin that turns a standalone URL into a link card at
-build time.
+A Sätteri HAST plugin that turns a standalone URL into a link card at build
+time.
 
-## Features
+> [!WARNING]
+> This package is experimental. Its API, generated HTML, CSS class names, and
+> behavior may change incompatibly between releases.
 
-- 🔎 **Metadata extraction:** Reads Open Graph, Twitter Card, and standard HTML metadata
-- 💾 **Metadata cache:** Keeps fetched metadata in a local file cache
-- 🌐 **Favicon:** Displays favicons by default
-- 🖼️ **Image cache:** Optionally caches thumbnails and favicons as local public assets
-- 🛡️ **Fail-safe:** Leaves the original link unchanged when fetching fails
-- 🎨 **Styling:** Ships optional preset CSS without injecting styles
-- ↗️ **New tab:** Opens generated cards in a new tab by default
+## ✨ Features
 
-## Relationship to `remark-link-card-plus`
+- Resolves Open Graph, Twitter Card, and standard HTML metadata
+- Displays a title, description, hostname, favicon, and thumbnail when available
+- Caches metadata locally by default
+- Optionally caches thumbnails and favicons as public assets
+- Leaves the original link unchanged when metadata cannot be resolved
+- Provides optional preset CSS without injecting styles
 
-💡 `satteri-link-card` is inspired by
-[`remark-link-card-plus`](https://github.com/okaryo/remark-link-card-plus).
-Both turn a bare URL into a metadata-rich card, but they work at different
-layers.
-
-- The pipeline is different: `remark-link-card-plus` is a Remark/mdast plugin,
-  while `satteri-link-card` is a Sätteri HAST plugin.
-- The APIs are different: the concepts are similar, but the option names and
-  configuration structure are not drop-in compatible.
-- The cache behavior is different: `remark-link-card-plus` has one cache option,
-  while `satteri-link-card` separates metadata caching from image caching.
-
-## Install
+## 📦 Installation
 
 ```sh
-npm install satteri-link-card satteri     # npm
-yarn add satteri-link-card satteri        # yarn
-pnpm add satteri-link-card satteri        # pnpm
-bun add satteri-link-card satteri         # bun
+pnpm add satteri-link-card satteri
 ```
 
-## Use with Sätteri
+Node.js 22 or newer is required.
+
+## 🚀 Sätteri setup
 
 ```ts
 import { markdownToHtml } from "satteri";
@@ -47,17 +35,21 @@ const result = await markdownToHtml("https://example.com/article", {
 });
 ```
 
-The plugin transforms only a bare HTTP or HTTPS URL in a root-level paragraph.
-Explicit Markdown links, inline URLs, and URLs inside lists are left alone.
+Only a bare HTTP or HTTPS URL in a root-level paragraph is converted. Explicit
+Markdown links, inline URLs, and URLs nested in lists or blockquotes are left
+unchanged.
 
-## Use with Astro
+## 🌌 Astro setup
 
-Install and configure `@astrojs/markdown-satteri`,
-then add the plugin to `astro.config.mjs`:
+Install the Astro processor and configure it in `astro.config.mjs`:
+
+```sh
+pnpm add @astrojs/markdown-satteri satteri satteri-link-card
+```
 
 ```js
-import { defineConfig } from "astro/config";
 import { satteri } from "@astrojs/markdown-satteri";
+import { defineConfig } from "astro/config";
 import { satteriLinkCard } from "satteri-link-card";
 
 export default defineConfig({
@@ -69,16 +61,21 @@ export default defineConfig({
 });
 ```
 
-## Styling
+The plugin then processes Markdown rendered by Astro.
 
-The plugin outputs class names but does not inject CSS. Import the optional
-preset once from a layout or other global stylesheet entry:
+## 🎨 Styling
 
-```js
+The plugin emits class names but does not inject CSS. Import the optional preset
+once from a shared Astro layout or another global stylesheet entry:
+
+```astro
+---
 import "satteri-link-card/preset.css";
+---
 ```
 
-You can replace the preset entirely, or override these stable classes:
+You can omit the preset and define the styles yourself. The generated elements
+use these stable classes for the current release:
 
 - `.satteri-link-card`
 - `.satteri-link-card__body`
@@ -90,7 +87,7 @@ You can replace the preset entirely, or override these stable classes:
 - `.satteri-link-card__media`
 - `.satteri-link-card__image`
 
-## Options
+## ⚙️ Options
 
 ```ts
 satteriLinkCard({
@@ -98,36 +95,35 @@ satteriLinkCard({
     directory: ".cache/satteri-link-card",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
-  imageCache: {
-    maxImageBytes: 5 * 1024 * 1024,
-  },
+  imageCache: true,
   thumbnail: { position: "right" },
   favicon: false,
+  shortenUrl: true,
   ignoreExtensions: [".pdf", ".mp4"],
   openInNewTab: true,
 });
 ```
 
-| Option                     | Default                    | Description                                                          |
-| -------------------------- | -------------------------- | -------------------------------------------------------------------- |
-| `metadataCache`            | `{}`                       | Metadata cache settings, or `false` to disable metadata caching.     |
-| `metadataCache.directory`  | `.cache/satteri-link-card` | Directory for JSON metadata files.                                   |
-| `metadataCache.maxAge`     | 30 days                    | Maximum cache age in milliseconds, or `false` to never expire.       |
-| `imageCache`               | `false`                    | Enables the filesystem image cache, or accepts custom store options. |
-| `imageCache.maxImageBytes` | 5 MiB                      | Maximum download size for one cached image.                          |
-| `thumbnail`                | `{ position: "right" }`    | Sets thumbnail position, or `false` to omit the thumbnail.           |
-| `favicon`                  | enabled                    | Set to `false` to omit favicon discovery and rendering.              |
-| `shortenUrl`               | `true`                     | Displays only the hostname instead of the full URL.                  |
-| `ignoreExtensions`         | `[]`                       | Leaves URLs with these path extensions unchanged.                    |
-| `transformMetadata`        | `undefined`                | Transforms fetched metadata before rendering and asset caching.      |
-| `openInNewTab`             | `true`                     | Adds `target="_blank"` and `rel="noopener noreferrer"`.              |
+| Option                     | Default                    | Description                                                         |
+| -------------------------- | -------------------------- | ------------------------------------------------------------------- |
+| `metadataCache`            | `{}`                       | Metadata cache settings, or `false` to disable the cache.           |
+| `metadataCache.directory`  | `.cache/satteri-link-card` | Directory for cached metadata files.                                |
+| `metadataCache.maxAge`     | 30 days                    | Maximum age in milliseconds, or `false` to never expire.            |
+| `imageCache`               | `false`                    | Enables the filesystem image cache or accepts custom store options. |
+| `imageCache.maxImageBytes` | 5 MiB                      | Maximum download size for one cached image.                         |
+| `thumbnail`                | `{ position: "right" }`    | Sets the thumbnail position; use `false` to omit it.                |
+| `favicon`                  | enabled                    | Use `false` to omit favicon discovery and rendering.                |
+| `shortenUrl`               | `true`                     | Shows only the hostname instead of the full URL.                    |
+| `ignoreExtensions`         | `[]`                       | Leaves URLs with matching path extensions unchanged.                |
+| `transformMetadata`        | `undefined`                | Changes resolved metadata before rendering and asset caching.       |
+| `openInNewTab`             | `true`                     | Adds `target="_blank"` and `rel="noopener noreferrer"`.             |
 
-`imageCache: true` writes assets to `public/satteri-link-card/` and renders
-them from `/satteri-link-card/`. It caches both Open Graph images and favicons.
-The default is `false`, so an environment without a `public/` convention can
-continue to use remote assets.
+## 💾 Image cache
 
-To customize the filesystem location, use the built-in store:
+`imageCache: true` writes thumbnails and favicons to
+`public/satteri-link-card/` and renders them from `/satteri-link-card/`.
+
+Use the built-in store to change the filesystem location:
 
 ```ts
 import { createFileSystemImageCacheStore, satteriLinkCard } from "satteri-link-card";
@@ -142,40 +138,31 @@ satteriLinkCard({
 });
 ```
 
-Other backends can implement the exported `ImageCacheStore` interface and be
-passed as `imageCache.store`.
+Custom backends can implement the exported `ImageCacheStore` interface. The
+initial cache supports common raster formats and ICO favicons. SVG assets are
+not cached. Image-cache failures fall back to the remote asset URL.
 
-The initial image cache accepts common raster formats and ICO favicons. SVG
-assets are not cached in this release. Cache failures fall back to the remote
-asset URL, while metadata failures leave the original link unchanged.
+## 🔒 Security and limitations
 
-## Security
+Metadata and image requests run in the build environment. Use the plugin only
+with trusted Markdown. Requests to private or local network addresses are not
+currently blocked.
 
-Metadata and image fetching happen in the build environment. Use this plugin
-with trusted Markdown. The plugin does not currently block requests to private
-or local network addresses.
+The plugin does not provide offline builds, cache pruning, or concurrency limits
+across different URLs.
 
-## Roadmap
+## 🔁 Relationship to `remark-link-card-plus`
 
-- [x] Require Node.js 22 or newer and test maintained Node.js versions in CI.
-- [x] Add useful `remark-link-card-plus`-compatible settings without changing
-      the standalone bare-URL rule.
-- [x] Replace separate negative thumbnail settings with
-      `thumbnail: false | ThumbnailOptions`.
-- [x] Add favicon rendering by default, with `favicon: false` as the initial
-      opt-out.
-- [x] Separate the metadata cache from an opt-in `imageCache` and a pluggable
-      `ImageCacheStore`.
-- [x] Cache images and favicons under `public/satteri-link-card/` when
-      `imageCache: true` is enabled.
-- [x] Add bounded asset downloads, media-type validation, atomic writes, and
-      an explicit SVG policy.
-- [ ] Add concurrency limits across different URLs, stale-on-error, and
-      offline builds.
-- [ ] Add explicit cache pruning and strengthen the build-time network security
-      policy.
+This package is inspired by
+[`remark-link-card-plus`](https://github.com/okaryo/remark-link-card-plus), but
+the packages are not interchangeable:
 
-## Development
+- `remark-link-card-plus` is a Remark/mdast plugin; this package is a Sätteri
+  HAST plugin.
+- Option names and configuration structures differ.
+- Metadata caching and image caching are separate in this package.
+
+## 🛠️ Development
 
 ```sh
 vp install
@@ -184,6 +171,6 @@ vp test
 vp pack
 ```
 
-## License
+## 📄 License
 
 [MIT](./LICENSE)
