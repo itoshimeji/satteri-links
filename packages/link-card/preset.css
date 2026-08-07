@@ -26,6 +26,10 @@ a.satteri-link-card:not(:has(.satteri-link-card__media)) {
   grid-template-columns: minmax(0, 1fr);
 }
 
+a.satteri-link-card:has(> .satteri-link-card__media:first-child) {
+  grid-template-columns: clamp(12rem, 35%, 16rem) minmax(0, 1fr);
+}
+
 a.satteri-link-card:hover {
   background: #f5f5f5;
   color: #222;
@@ -114,6 +118,10 @@ img.satteri-link-card__image {
     grid-template-columns: minmax(0, 1fr) 7.5rem;
     height: 7.5rem;
     min-height: 0;
+  }
+
+  a.satteri-link-card:has(> .satteri-link-card__media:first-child) {
+    grid-template-columns: 7.5rem minmax(0, 1fr);
   }
 
   a.satteri-link-card .satteri-link-card__body {
