@@ -1,8 +1,9 @@
 # @itoshinji/link-preview
 
 Framework-independent, build-time metadata and image resolution for link
-previews. It fetches HTML metadata such as titles, descriptions, Open Graph
-images, and favicons, and provides optional filesystem-backed caching.
+previews. It fetches HTML metadata such as titles, site names, descriptions,
+Open Graph images, and favicons, and provides optional filesystem-backed
+caching.
 
 The package does not depend on Satteri or any Markdown AST implementation.
 `satteri-link-card` uses it as a workspace dependency, but other build tools and

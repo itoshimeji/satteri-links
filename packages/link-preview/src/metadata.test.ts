@@ -40,6 +40,21 @@ describe("extractMetadata", () => {
     expect(metadata).not.toHaveProperty("url");
   });
 
+  test("extracts an Open Graph or application site name", () => {
+    expect(
+      extractMetadata(
+        '<meta name="application-name" content="Application"><meta property="og:site_name" content="Open Graph">',
+        new URL("https://example.com/"),
+      ).siteName,
+    ).toBe("Open Graph");
+    expect(
+      extractMetadata(
+        '<meta name="application-name" content="Application">',
+        new URL("https://example.com/"),
+      ).siteName,
+    ).toBe("Application");
+  });
+
   test("resolves relative image URLs against the page URL", () => {
     const metadata = extractMetadata(
       '<meta property="og:image" content="../images/card.png">',

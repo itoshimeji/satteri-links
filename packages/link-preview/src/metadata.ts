@@ -142,6 +142,7 @@ export function extractMetadata(html: string, documentUrl: URL): ExtractedMetada
     // to more general document metadata so incomplete pages still form a card.
     title:
       first(metadata.get("og:title"), metadata.get("twitter:title"), title) ?? documentUrl.hostname,
+    siteName: first(metadata.get("og:site_name"), metadata.get("application-name")),
     description: first(
       metadata.get("og:description"),
       metadata.get("twitter:description"),

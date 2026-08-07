@@ -1,0 +1,53 @@
+/* Optional presentation preset for inline link mentions. */
+a.satteri-link-mention {
+  display: inline;
+  border-bottom: none;
+  border-radius: 0.2em;
+  background-color: transparent;
+  color: #222;
+  white-space: normal;
+  text-decoration: none;
+  padding: 0.15rem 0 0.15rem 0;
+  transition: background-color 150ms ease;
+}
+
+a.satteri-link-mention > :not(:last-child) {
+  margin-inline-end: 0.3em;
+}
+
+a.satteri-link-mention:hover {
+  background-color: #f1f1f1;
+  border-bottom: none;
+  color: #222;
+  text-decoration: none;
+}
+
+a.satteri-link-mention:focus-visible {
+  background-color: #f1f1f1;
+  border-bottom: none;
+  color: #222;
+  text-decoration: none;
+}
+
+a.satteri-link-mention:visited {
+  color: #222;
+}
+
+img.satteri-link-mention__favicon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  object-fit: contain;
+  vertical-align: -0.125em;
+}
+
+.satteri-link-mention__site-name {
+  color: #666;
+}
+
+.satteri-link-mention__title {
+  color: #222;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

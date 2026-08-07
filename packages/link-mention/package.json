@@ -1,0 +1,63 @@
+{
+  "name": "satteri-link-mention",
+  "version": "0.0.1",
+  "description": "Build-time inline link mention for Sätteri Markdown.",
+  "keywords": [
+    "astro",
+    "favicon",
+    "link-mention",
+    "markdown",
+    "satteri"
+  ],
+  "homepage": "https://github.com/ItoShimeji/satteri-links#readme",
+  "bugs": {
+    "url": "https://github.com/ItoShimeji/satteri-links/issues"
+  },
+  "license": "MIT",
+  "author": "Daichi Hamazaki (https://github.com/itoshimeji)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ItoShimeji/satteri-links.git",
+    "directory": "packages/link-mention"
+  },
+  "files": [
+    "dist",
+    "preset.css"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "./preset.css"
+  ],
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./preset.css": "./preset.css",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp check && vp test && vp pack",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "@itoshinji/link-preview": "workspace:*"
+  },
+  "devDependencies": {
+    "satteri": "catalog:"
+  },
+  "peerDependencies": {
+    "satteri": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,6 +1,7 @@
 export type LinkMetadata = {
   url: string;
   title: string;
+  siteName?: string;
   description?: string;
   image?: string;
   favicon?: string;
