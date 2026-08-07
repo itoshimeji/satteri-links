@@ -4,17 +4,21 @@ import "../styles/global.css";
 interface Frontmatter {
 	title?: string;
 	description?: string;
+	robots?: string;
 }
 
 interface Props {
 	title?: string;
 	description?: string;
+	robots?: string;
 	frontmatter?: Frontmatter;
 }
 
-const { frontmatter, title: propTitle, description: propDescription } = Astro.props;
+const { frontmatter, title: propTitle, description: propDescription, robots: propRobots } = Astro.props;
 const title = propTitle ?? frontmatter?.title ?? "Satteri Links";
 const description = propDescription ?? frontmatter?.description ?? "Build-time link previews for Sätteri Markdown.";
+const robots = propRobots ?? frontmatter?.robots ?? "index, follow";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const pathname = Astro.url.pathname;
 const links = [
 	{ href: "/", label: "Home" },
@@ -28,11 +32,13 @@ const links = [
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="description" content={description} />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<meta name="robots" content={robots} />
+		<link rel="canonical" href={canonicalURL} />
+		<link rel="sitemap" href="/sitemap-index.xml" />
 		<title>{title === "Satteri Links" ? title : `${title} · Satteri Links`}</title>
 	</head>
 	<body>
+		<a class="skip-link" href="#main-content">Skip to content</a>
 		<header class="site-header">
 			<a class="site-title" href="/">Satteri Links</a>
 			<nav class="site-nav" aria-label="Main navigation">
@@ -44,11 +50,12 @@ const links = [
 			</nav>
 		</header>
 
-		<main class="markdown-body">
+		<main id="main-content" class="markdown-body">
 			<slot />
 		</main>
 
 		<footer class="site-footer">
+			<p>Built by <a href="https://hamazaki.me">Daichi Hamazaki</a>.</p>
 			<a href="https://github.com/ItoShimeji/satteri-links">GitHub repository</a>
 		</footer>
 	</body>
