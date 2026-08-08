@@ -1,6 +1,6 @@
 {
   "name": "satteri-link-mention",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build-time inline link mention for Sätteri Markdown.",
   "keywords": [
     "astro",
