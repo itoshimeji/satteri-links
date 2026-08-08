@@ -44,8 +44,7 @@
     "dev": "vp pack --watch",
     "test": "vp test",
     "check": "vp check",
-    "prepublishOnly": "vp check && vp test && vp pack",
-    "prepare": "vp config"
+    "prepublishOnly": "vp check && vp test && vp pack"
   },
   "dependencies": {
     "parse5": "^8.0.1"
