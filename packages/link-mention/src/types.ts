@@ -27,7 +27,7 @@ export type MentionOptions = {
 
 export type SatteriLinkMentionOptions = {
   metadataCache?: MetadataCacheOptions | false;
-  imageCache?: ImageCacheOptions | false;
+  imageCache?: boolean | ImageCacheOptions;
   mention?: MentionOptions;
   openInNewTab?: boolean;
 };

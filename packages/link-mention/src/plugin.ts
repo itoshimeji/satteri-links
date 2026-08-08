@@ -18,6 +18,8 @@ const DEFAULT_PUBLIC_PATH = "/satteri-link-mention";
 
 function resolveOptions(options: SatteriLinkMentionOptions): ResolvedSatteriLinkMentionOptions {
   const metadataCache = options.metadataCache ?? {};
+  const imageCache = options.imageCache ?? false;
+  const imageCacheOptions = imageCache === true ? {} : imageCache;
 
   return {
     metadataCache:
@@ -27,17 +29,18 @@ function resolveOptions(options: SatteriLinkMentionOptions): ResolvedSatteriLink
             directory: metadataCache.directory ?? DEFAULT_METADATA_CACHE_DIRECTORY,
             maxAge: metadataCache.maxAge,
           },
-    imageCache: options.imageCache
-      ? {
-          maxImageBytes: options.imageCache.maxImageBytes,
-          store:
-            options.imageCache.store ??
-            createFileSystemImageCacheStore({
-              directory: DEFAULT_DIRECTORY,
-              publicPath: DEFAULT_PUBLIC_PATH,
-            }),
-        }
-      : false,
+    imageCache:
+      imageCacheOptions === false
+        ? false
+        : {
+            maxImageBytes: imageCacheOptions.maxImageBytes,
+            store:
+              imageCacheOptions.store ??
+              createFileSystemImageCacheStore({
+                directory: DEFAULT_DIRECTORY,
+                publicPath: DEFAULT_PUBLIC_PATH,
+              }),
+          },
     mention: {
       favicon: options.mention?.favicon ?? true,
       siteName: options.mention?.siteName ?? true,
