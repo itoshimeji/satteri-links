@@ -52,7 +52,9 @@
     "@itoshinji/link-preview": "workspace:*"
   },
   "devDependencies": {
-    "satteri": "catalog:"
+    "satteri": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "peerDependencies": {
     "satteri": "catalog:"

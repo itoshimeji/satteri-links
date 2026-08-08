@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:workspace": "vp run --cache -t build",
     "preview": "astro preview",
-    "deploy": "pnpm build && wrangler deploy",
+    "deploy": "pnpm run build:workspace && wrangler deploy",
     "astro": "astro"
   },
   "dependencies": {
@@ -19,6 +20,10 @@
     "satteri-link-card": "workspace:*",
     "satteri-link-mention": "workspace:*",
     "wrangler": "^4.119.0"
+  },
+  "devDependencies": {
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "engines": {
     "node": ">=22.12.0"
