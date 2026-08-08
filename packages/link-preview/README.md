@@ -1,4 +1,4 @@
-# @itoshinji/link-preview
+# 🔎 @itoshinji/link-preview
 
 Framework-independent, build-time metadata and image resolution for link
 previews.

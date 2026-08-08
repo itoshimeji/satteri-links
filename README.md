@@ -9,7 +9,7 @@ and released from one monorepo.
 
 ## 📦 Packages
 
-- 🔗 [`satteri-link-card`](./packages/link-card) turns a standalone URL into a
+- 🌌 [`satteri-link-card`](./packages/link-card) turns a standalone URL into a
   metadata-rich link card.
 - 💬 [`satteri-link-mention`](./packages/link-mention) turns an empty Markdown
   link into an inline mention.
@@ -19,7 +19,7 @@ and released from one monorepo.
 Install a feature package if you use Sätteri. Use `@itoshinji/link-preview`
 directly when building another integration.
 
-## 🌌 Astro
+## 👨‍🚀 Astro
 
 The feature packages can be used in Astro through
 [`@astrojs/markdown-satteri`](https://github.com/ItoShimeji/markdown-satteri).

@@ -1,4 +1,4 @@
-# satteri-link-card
+# 🌌 satteri-link-card
 
 A Sätteri HAST plugin that turns a standalone URL into a link card at build
 time.

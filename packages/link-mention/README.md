@@ -1,4 +1,4 @@
-# satteri-link-mention
+# 💬 satteri-link-mention
 
 A Sätteri HAST plugin that turns an empty Markdown link into an inline mention
 at build time.
