@@ -5,7 +5,7 @@
   "scripts": {
     "prepare": "vp config",
     "build": "vp run --cache -r build",
-    "dev": "vp run -r --parallel dev",
+    "dev": "vp run dev:workspace",
     "test": "vp run --cache -r test",
     "check": "vp run --cache -r check",
     "release:card": "bumpp packages/link-card/package.json --no-push --commit \"chore: release satteri-link-card v%s\" --tag \"satteri-link-card-v%s\"",
