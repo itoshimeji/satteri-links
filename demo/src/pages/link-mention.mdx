@@ -1,5 +1,5 @@
 import { markdownToHtml } from "satteri";
-import { satteriLinkMention } from "satteri-link-mention";
+import { createFileSystemImageCacheStore, satteriLinkMention } from "satteri-link-mention";
 import "satteri-link-mention/preset.css";
 import DemoLayout from "../layouts/DemoLayout.astro";
 
@@ -188,11 +188,28 @@ https://astro.build/
 
 ## 💾 Caching
 
-Metadata is cached under `.cache/satteri-link-mention` by default. Set
-`metadataCache: false` to disable it.
+Metadata is cached under `.cache/satteri-link-mention` by default. Favicons
+remain remote by default. Configure both caches in the plugin definition:
 
-Favicons remain remote by default. Configure `imageCache` with a filesystem or
-custom cache store to save them locally.
+```ts
+satteriLinkMention({
+  metadataCache: {
+    directory: ".cache/link-mentions",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  },
+  imageCache: {
+    maxImageBytes: 5 * 1024 * 1024,
+    store: createFileSystemImageCacheStore({
+      directory: "public/link-mentions",
+      publicPath: "/link-mentions",
+    }),
+  },
+});
+```
+
+Set `metadataCache: false` to disable metadata caching. Set `imageCache: true`
+to use the default filesystem store, or provide a custom `ImageCacheStore` for
+another backend.
 
 ## ⚠️ Limitations
 

@@ -99,21 +99,38 @@ satteriLinkMention({
 });
 ```
 
-| Option                     | Default                       | Description                                                       |
-| -------------------------- | ----------------------------- | ----------------------------------------------------------------- |
-| `mention.favicon`          | `true`                        | Shows the resolved favicon when available.                        |
-| `mention.siteName`         | `true`                        | Shows `og:site_name` or `application-name` when available.        |
-| `mention.title`            | `true`                        | Shows the resolved page title.                                    |
-| `mention.order`            | favicon, siteName, title      | Sets the order of enabled parts. Duplicate values throw an error. |
-| `metadataCache`            | `{}`                          | Metadata cache settings, or `false` to disable the cache.         |
-| `metadataCache.directory`  | `.cache/satteri-link-mention` | Directory for cached metadata files.                              |
-| `metadataCache.maxAge`     | 30 days                       | Maximum age in milliseconds, or `false` to never expire.          |
-| `imageCache`               | `false`                       | Caches favicons locally when configured.                          |
-| `imageCache.maxImageBytes` | 5 MiB                         | Maximum download size for one cached favicon.                     |
-| `openInNewTab`             | `true`                        | Adds `target="_blank"` and `rel="noopener noreferrer"`.           |
+| Option                     | Default                       | Description                                                         |
+| -------------------------- | ----------------------------- | ------------------------------------------------------------------- |
+| `mention.favicon`          | `true`                        | Shows the resolved favicon when available.                          |
+| `mention.siteName`         | `true`                        | Shows `og:site_name` or `application-name` when available.          |
+| `mention.title`            | `true`                        | Shows the resolved page title.                                      |
+| `mention.order`            | favicon, siteName, title      | Sets the order of enabled parts. Duplicate values throw an error.   |
+| `metadataCache`            | `{}`                          | Metadata cache settings, or `false` to disable the cache.           |
+| `metadataCache.directory`  | `.cache/satteri-link-mention` | Directory for cached metadata files.                                |
+| `metadataCache.maxAge`     | 30 days                       | Maximum age in milliseconds, or `false` to never expire.            |
+| `imageCache`               | `false`                       | Enables the filesystem image cache or accepts custom store options. |
+| `imageCache.maxImageBytes` | 5 MiB                         | Maximum download size for one cached favicon.                       |
+| `openInNewTab`             | `true`                        | Adds `target="_blank"` and `rel="noopener noreferrer"`.             |
 
-Use `createFileSystemImageCacheStore` from this package to configure a custom
-location for cached favicon assets.
+`imageCache: true` writes favicons to `public/satteri-link-mention/` and
+renders them from `/satteri-link-mention/`.
+
+Use the built-in store to change the filesystem location:
+
+```ts
+import { createFileSystemImageCacheStore, satteriLinkMention } from "satteri-link-mention";
+
+satteriLinkMention({
+  imageCache: {
+    store: createFileSystemImageCacheStore({
+      directory: "static/link-mentions",
+      publicPath: "/link-mentions",
+    }),
+  },
+});
+```
+
+Custom backends can implement the exported `ImageCacheStore` interface.
 
 ## 🔒 Security and limitations
 

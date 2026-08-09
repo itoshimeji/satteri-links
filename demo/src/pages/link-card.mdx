@@ -1,5 +1,5 @@
 import { markdownToHtml } from "satteri";
-import { satteriLinkCard } from "satteri-link-card";
+import { createFileSystemImageCacheStore, satteriLinkCard } from "satteri-link-card";
 import "satteri-link-card/preset.css";
 import DemoLayout from "../layouts/DemoLayout.astro";
 
@@ -217,11 +217,28 @@ https://github.com/ItoShimeji/satteri-links https://astro.build/
 
 ## 💾 Caching
 
-Metadata is cached under `.cache/satteri-link-card` by default. Set
-`metadataCache: false` to disable it.
+Metadata is cached under `.cache/satteri-link-card` by default. Images remain
+remote by default. Configure both caches in the plugin definition:
 
-Images remain remote by default. Set `imageCache: true` to cache thumbnails and
-favicons under `public/satteri-link-card/`.
+```ts
+satteriLinkCard({
+  metadataCache: {
+    directory: ".cache/link-cards",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  },
+  imageCache: {
+    maxImageBytes: 5 * 1024 * 1024,
+    store: createFileSystemImageCacheStore({
+      directory: "public/link-cards",
+      publicPath: "/link-cards",
+    }),
+  },
+});
+```
+
+Set `metadataCache: false` to disable metadata caching. Set `imageCache: true`
+to use the default filesystem store, or provide a custom `ImageCacheStore` for
+another backend.
 
 ## ⚠️ Limitations
 

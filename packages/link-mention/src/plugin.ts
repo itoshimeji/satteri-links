@@ -1,10 +1,7 @@
-import {
-  createImageResolver,
-  createMetadataResolver,
-  createFileSystemImageCacheStore,
-} from "@itoshinji/link-preview";
+import { createImageResolver, createMetadataResolver } from "@itoshinji/link-preview";
 import { defineHastPlugin } from "satteri";
 import { findEmptyUrl } from "./candidate.js";
+import { createFileSystemImageCacheStore } from "./image-store.js";
 import { renderLinkMention } from "./render.js";
 import type {
   LinkMetadata,
@@ -13,8 +10,6 @@ import type {
 } from "./types.js";
 
 const DEFAULT_METADATA_CACHE_DIRECTORY = ".cache/satteri-link-mention";
-const DEFAULT_DIRECTORY = "public/satteri-link-mention";
-const DEFAULT_PUBLIC_PATH = "/satteri-link-mention";
 
 function resolveOptions(options: SatteriLinkMentionOptions): ResolvedSatteriLinkMentionOptions {
   const metadataCache = options.metadataCache ?? {};
@@ -34,12 +29,7 @@ function resolveOptions(options: SatteriLinkMentionOptions): ResolvedSatteriLink
         ? false
         : {
             maxImageBytes: imageCacheOptions.maxImageBytes,
-            store:
-              imageCacheOptions.store ??
-              createFileSystemImageCacheStore({
-                directory: DEFAULT_DIRECTORY,
-                publicPath: DEFAULT_PUBLIC_PATH,
-              }),
+            store: imageCacheOptions.store ?? createFileSystemImageCacheStore(),
           },
     mention: {
       favicon: options.mention?.favicon ?? true,

@@ -1,8 +1,8 @@
 export { satteriLinkMention } from "./plugin.js";
-export { createFileSystemImageCacheStore } from "@itoshinji/link-preview";
+export { createFileSystemImageCacheStore } from "./image-store.js";
+export type { FileSystemImageCacheOptions } from "./image-store.js";
 export type {
   CachedImage,
-  FileSystemImageCacheStoreOptions,
   ImageCacheStore,
   ImageInput,
   LinkMetadata,
