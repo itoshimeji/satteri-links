@@ -14,10 +14,13 @@ export const defaultMention = await renderMention(mentionSource);
 export const reorderedMention = await renderMention(mentionSource, {
   mention: { order: ["siteName", "title", "favicon"] },
 });
-export const noFavicon = await renderMention("Sätteri is [](https://satteri.bruits.org/).", {
-  mention: { favicon: false },
-});
-export const titleOnly = await renderMention("Astro is [](https://astro.build/).", {
+export const noFavicon = await renderMention(
+  "Sätteri is [](https://astro.build/blog/astro-640/).",
+  {
+    mention: { favicon: false },
+  },
+);
+export const titleOnly = await renderMention("Astro is [](https://astro.build/blog/astro-640/).", {
   mention: { favicon: false, siteName: false, title: true },
 });
 export const mentionInList = await renderMention(

@@ -11,13 +11,14 @@ export async function renderCard(source, options = {}) {
 
 export const cardSource = "https://github.com/ItoShimeji/satteri-links";
 export const astroSource = "https://astro.build/";
+export const astroGitHubSource = "https://github.com/withastro/astro";
 export const defaultCard = await renderCard(cardSource);
 export const noThumbnail = await renderCard(astroSource, { thumbnail: false });
 export const leftThumbnail = await renderCard(astroSource, {
   thumbnail: { position: "left" },
 });
-export const fullUrl = await renderCard(cardSource, { shortenUrl: false });
-export const noFavicon = await renderCard(astroSource, { favicon: false });
+export const fullUrl = await renderCard(astroGitHubSource, { shortenUrl: false });
+export const noFavicon = await renderCard(astroGitHubSource, { favicon: false });
 export const ignoredExtension = await renderCard("https://example.com/manual.pdf", {
   ignoreExtensions: [".pdf", ".mp4"],
 });
