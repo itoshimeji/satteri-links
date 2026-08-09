@@ -6,8 +6,8 @@
     "prepare": "vp config",
     "build": "vp run --cache -r build",
     "dev": "vp run dev:workspace",
-    "test": "vp run --cache -r test",
-    "check": "vp run --cache -r check",
+    "test": "vp run test:workspace",
+    "check": "vp run check:workspace",
     "release:card": "bumpp packages/link-card/package.json --no-push --commit \"chore: release satteri-link-card v%s\" --tag \"satteri-link-card-v%s\"",
     "release:mention": "bumpp packages/link-mention/package.json --no-push --commit \"chore: release satteri-link-mention v%s\" --tag \"satteri-link-mention-v%s\"",
     "release:preview": "bumpp packages/link-preview/package.json --no-push --commit \"chore: release @itoshinji/link-preview v%s\" --tag \"link-preview-v%s\""

@@ -20,11 +20,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: true
-      - run: vp check
-      - run: vp test
-      - run: vp pack
-        working-directory: packages/link-preview
-      - run: vp pack
-        working-directory: packages/link-card
-      - run: vp pack
-        working-directory: packages/link-mention
+      - run: vp run check:workspace
+      - run: vp run test:workspace

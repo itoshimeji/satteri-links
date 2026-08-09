@@ -3,15 +3,25 @@ import { defineConfig } from "vite-plus";
 export default defineConfig({
   run: {
     tasks: {
-      "build:demo-dependencies": {
+      "build:packages": {
         command:
           "vp run --cache --filter 'satteri-link-card...' --filter 'satteri-link-mention...' build",
+        cache: false,
+      },
+      "check:workspace": {
+        command: "vp check",
+        dependsOn: ["build:packages"],
+        cache: false,
+      },
+      "test:workspace": {
+        command: "vp test",
+        dependsOn: ["build:packages"],
         cache: false,
       },
       "dev:workspace": {
         command:
           "vp run --parallel --filter @itoshinji/link-preview --filter satteri-link-card --filter satteri-link-mention --filter satteri-links-demo dev",
-        dependsOn: ["build:demo-dependencies"],
+        dependsOn: ["build:packages"],
         cache: false,
       },
     },
