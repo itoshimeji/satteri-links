@@ -32,8 +32,8 @@ export const authoredLink = await renderMention(
 export const bareUrl = await renderMention("https://astro.build/");
 
 <DemoLayout
-  title="satteri-link-mention"
-  description="Supported input, options, and output for satteri-link-mention."
+  title="satteri-link-mention — Inline link mentions for Sätteri"
+  description="A Sätteri HAST plugin that turns empty Markdown links into inline mentions. Works with Astro 7’s default Markdown pipeline."
 >
 
 # 💬 satteri-link-mention
@@ -57,8 +57,8 @@ The preset can be omitted and replaced with site-specific CSS.
 
 ## 👩‍🚀 Astro setup
 
-Configure the plugin through `@astrojs/markdown-satteri` in
-`astro.config.mjs`:
+Sätteri is the default Markdown and MDX pipeline in Astro 7. Configure the
+plugin through `@astrojs/markdown-satteri` in `astro.config.mjs`:
 
 ```js
 import { satteri } from "@astrojs/markdown-satteri";

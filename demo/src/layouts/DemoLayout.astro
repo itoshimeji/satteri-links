@@ -20,6 +20,7 @@ const description = propDescription ?? frontmatter?.description ?? "Build-time l
 const robots = propRobots ?? frontmatter?.robots ?? "index, follow";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const pathname = Astro.url.pathname;
+const documentTitle = title.startsWith("Satteri Links") ? title : `${title} · Satteri Links`;
 const links = [
 	{ href: "/", label: "Home" },
 	{ href: "/link-card/", label: "Link Card" },
@@ -35,7 +36,7 @@ const links = [
 		<meta name="robots" content={robots} />
 		<link rel="canonical" href={canonicalURL} />
 		<link rel="sitemap" href="/sitemap-index.xml" />
-		<title>{title === "Satteri Links" ? title : `${title} · Satteri Links`}</title>
+		<title>{documentTitle}</title>
 	</head>
 	<body>
 		<a class="skip-link" href="#main-content">Skip to content</a>
