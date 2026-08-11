@@ -7,7 +7,7 @@ and released from one monorepo.
 > This project is experimental. APIs, generated HTML, CSS class names, and
 > behavior may change incompatibly between releases.
 
-[View live examples](https://satteri-links.hamazaki.me/link-mention/).
+[View live examples](https://satteri-links.hamazaki.me/).
 
 ## 📦 Packages
 
