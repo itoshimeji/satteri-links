@@ -15,6 +15,7 @@ headings at build time.
 - Keeps the heading and permalink as sibling elements
 - Names the icon-only link with the visible heading through `aria-labelledby`
 - Supports text, HAST, callback, and CSS-owned icons
+- Supports end and start placement
 - Provides optional preset CSS without injecting styles
 - Does not add browser JavaScript or generate heading IDs
 
@@ -96,7 +97,8 @@ use these stable classes for the current release:
 The preset provides GitHub Markdown-inspired heading typography, spacing, and
 rules, plus a visible `:focus-visible` outline, a larger pointer target, icon
 reveal on hover, and wrapping that keeps the heading's final word with its icon.
-It does not provide the accessible name.
+The preset provides the default `end` presentation; start placement requires
+site-specific CSS. The preset does not provide the accessible name.
 
 Because the heading and permalink share a wrapper, the wrapper owns visual
 heading styles such as font size, margin, padding, and borders. The child
@@ -137,28 +139,26 @@ larger offset:
 ```ts
 satteriHeadingLink({
   levels: [2, 3],
+  placement: "end",
   accessibleName: ({ text }) => `Link to section “${text}”`,
   icon: "#",
-  linkProperties: { dataTestId: "heading-link" },
-  headingProperties: { dataSectionHeading: true },
-  wrapperProperties: { className: ["prose-heading-link"] },
   missingId: "warn",
 });
 ```
 
-| Option              | Default            | Description                                                                         |
-| ------------------- | ------------------ | ----------------------------------------------------------------------------------- |
-| `levels`            | all heading levels | Heading levels to decorate.                                                         |
-| `accessibleName`    | `"heading"`        | Uses `aria-labelledby`, or a callback for a localized `aria-label`.                 |
-| `icon`              | built-in SVG       | Accepts a string, HAST content, callback, or `false`.                               |
-| `linkProperties`    | `{}`               | Extra HAST properties for the link.                                                 |
-| `headingProperties` | `{}`               | Extra HAST properties for the heading.                                              |
-| `wrapperProperties` | `{}`               | Extra HAST properties for the wrapper.                                              |
-| `missingId`         | `"skip"`           | Handles selected headings without a non-empty ID: `"skip"`, `"warn"`, or `"error"`. |
+| Option           | Default            | Description                                                                         |
+| ---------------- | ------------------ | ----------------------------------------------------------------------------------- |
+| `levels`         | all heading levels | Heading levels to decorate.                                                         |
+| `placement`      | `"end"`            | Places the link after or before the heading.                                        |
+| `accessibleName` | `"heading"`        | Uses `aria-labelledby`, or a callback for a localized `aria-label`.                 |
+| `icon`           | built-in SVG       | Accepts a string, HAST content, callback, or `false`.                               |
+| `missingId`      | `"skip"`           | Handles selected headings without a non-empty ID: `"skip"`, `"warn"`, or `"error"`. |
 
-Custom classes are merged with the package classes. The library keeps the
-heading ID, link `href`, accessible-name attributes, icon `aria-hidden`, and
-wrapper marker under its control.
+The library owns the generated classes, heading ID, link `href`, accessible-name
+attributes, icon `aria-hidden`, and wrapper marker. Use the stable classes and
+an enclosing site element to scope custom CSS. Generated wrapper, heading, and
+link properties are intentionally not configurable so their semantics remain
+under library control.
 
 ### Accessible names
 
@@ -238,12 +238,14 @@ reference commit and license notice.
 
 ## 🔒 Security and limitations
 
-Custom HAST properties and icon nodes are emitted into the generated HTML. Do
-not construct them from untrusted input without an appropriate sanitizer.
+Custom icon HAST nodes are emitted into the generated HTML. Do not construct
+them from untrusted input without an appropriate sanitizer.
 
 The plugin only decorates headings with existing IDs and does not run browser
 JavaScript. It does not provide slug generation, table-of-contents generation,
-or client-side copy behavior.
+or client-side copy behavior. Arbitrary HAST properties for the generated
+wrapper, heading, and link are intentionally not accepted; this keeps their
+semantics under the library's control.
 
 ## 🛠️ Development
 

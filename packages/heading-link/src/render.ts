@@ -7,11 +7,6 @@ import type {
   SatteriHeadingLinkOptions,
 } from "./types.js";
 
-function build<T>(value: Build<T> | undefined, info: HeadingLinkInfo): T | undefined {
-  if (value === undefined) return undefined;
-  return typeof value === "function" ? (value as (info: HeadingLinkInfo) => T)(info) : value;
-}
-
 function classList(value: unknown): string[] {
   if (Array.isArray(value)) return value.flatMap((item) => classList(item));
   if (typeof value === "string") return value.split(/\s+/).filter(Boolean);
@@ -26,41 +21,23 @@ function mergeClassName(base: string[], properties: Properties): Properties {
   return result as Properties;
 }
 
-function renderHeadingProperties(
-  properties: Properties | undefined,
-  heading: Readonly<Element>,
-): Properties {
+function renderHeadingProperties(heading: Readonly<Element>): Properties {
   const sourceProperties = heading.properties ?? {};
   const sourceClasses = classList(
     sourceProperties.className ?? (sourceProperties as Record<string, unknown>).class,
   );
   const result = mergeClassName(["satteri-heading-link__heading", ...sourceClasses], {
     ...sourceProperties,
-    ...properties,
   }) as Record<string, unknown>;
   result.id = sourceProperties.id;
   return result as Properties;
 }
 
 function renderLinkProperties(
-  properties: Properties,
   info: HeadingLinkInfo,
   accessibleName: string | undefined,
 ): Properties {
-  const result = { ...properties } as Record<string, unknown>;
-  for (const key of [
-    "href",
-    "ariaHidden",
-    "aria-hidden",
-    "tabIndex",
-    "tabindex",
-    "ariaLabel",
-    "aria-label",
-    "ariaLabelledby",
-    "aria-labelledby",
-  ]) {
-    delete result[key];
-  }
+  const result: Record<string, unknown> = {};
   result.href = `#${info.id}`;
   if (accessibleName === undefined) result.ariaLabelledby = info.id;
   else result.ariaLabel = accessibleName;
@@ -93,31 +70,27 @@ export function renderHeadingLink(
 ): Element {
   const icon = renderIcon(options.icon, info);
   const linkChildren: ElementContent[] = icon ? [icon] : [];
-  const wrapperProperties = mergeClassName(
-    ["satteri-heading-link", `satteri-heading-link--h${info.level}`],
-    build(options.wrapperProperties, info) ?? {},
-  ) as Record<string, unknown>;
-  wrapperProperties["data-satteri-heading-link"] = true;
+  const placement = options.placement ?? "end";
+  const wrapperProps = {
+    className: ["satteri-heading-link", `satteri-heading-link--h${info.level}`],
+  } as Record<string, unknown>;
+  wrapperProps["data-satteri-heading-link"] = true;
+
+  const heading = {
+    ...info.heading,
+    properties: renderHeadingProperties(info.heading),
+  };
+  const link = {
+    type: "element" as const,
+    tagName: "a",
+    properties: renderLinkProperties(info, accessibleName),
+    children: linkChildren,
+  };
 
   return {
     type: "element",
     tagName: "div",
-    properties: wrapperProperties as Properties,
-    children: [
-      {
-        ...info.heading,
-        properties: renderHeadingProperties(build(options.headingProperties, info), info.heading),
-      },
-      {
-        type: "element",
-        tagName: "a",
-        properties: renderLinkProperties(
-          build(options.linkProperties, info) ?? {},
-          info,
-          accessibleName,
-        ),
-        children: linkChildren,
-      },
-    ],
+    properties: wrapperProps as Properties,
+    children: placement === "start" ? [link, heading] : [heading, link],
   };
 }

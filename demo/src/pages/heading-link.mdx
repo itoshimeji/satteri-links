@@ -17,7 +17,6 @@ export const localized = await renderExample("## 日本語の見出し", {
 });
 export const cssOwnedIcon = await renderExample("## A heading with a CSS-owned icon", {
   icon: false,
-  wrapperProperties: { className: ["demo-css-owned-icon"] },
 });
 export const selectedLevels = await renderExample(
   "# Page title\n\n## Included section\n\n### Included subsection",
@@ -163,7 +162,6 @@ named and keyboard-operable; only its decorative content is omitted.
 ```ts
 satteriHeadingLink({
   icon: false,
-  wrapperProperties: { className: ["demo-css-owned-icon"] },
 });
 ```
 
@@ -173,7 +171,9 @@ satteriHeadingLink({
 }
 ```
 
-<Fragment set:html={cssOwnedIcon} />
+<div class="demo-css-owned-icon">
+  <Fragment set:html={cssOwnedIcon} />
+</div>
 
 ## ✅ Accessibility checklist
 

@@ -46,38 +46,32 @@ describe("renderHeadingLink", () => {
     });
   });
 
-  test("merges custom classes and protects structural properties", () => {
-    const wrapper = renderHeadingLink(
-      {
-        wrapperProperties: { className: ["custom-wrapper"] },
-        headingProperties: { className: ["custom-heading"], id: "wrong" },
-        linkProperties: { className: ["custom-link"], href: "#wrong", tabIndex: -1 },
-      },
-      info,
-      "Link to Installation",
-    );
+  test("places the link before the heading in start mode", () => {
+    const wrapper = renderHeadingLink({ placement: "start" }, info, undefined);
 
     expect(wrapper).toMatchObject({
       properties: {
-        className: ["satteri-heading-link", "satteri-heading-link--h2", "custom-wrapper"],
+        className: ["satteri-heading-link", "satteri-heading-link--h2"],
       },
+      children: [{ tagName: "a" }, { tagName: "h2" }],
+    });
+  });
+
+  test("renders a custom accessible name", () => {
+    const wrapper = renderHeadingLink({}, info, "Link to Installation");
+
+    expect(wrapper).toMatchObject({
       children: [
-        {
-          properties: {
-            id: "installation",
-            className: ["satteri-heading-link__heading", "source-heading", "custom-heading"],
-          },
-        },
+        {},
         {
           properties: {
             href: "#installation",
             ariaLabel: "Link to Installation",
-            className: ["satteri-heading-link__link", "custom-link"],
+            className: ["satteri-heading-link__link"],
           },
         },
       ],
     });
-    expect((wrapper.children[1] as Element).properties).not.toHaveProperty("tabIndex");
   });
 
   test("supports custom and omitted icons", () => {

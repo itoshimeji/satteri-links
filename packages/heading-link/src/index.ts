@@ -3,6 +3,7 @@ export { defaultHeadingLinkIcon } from "./icon.js";
 export type {
   Build,
   HeadingLevel,
+  HeadingLinkPlacement,
   HeadingLinkIcon,
   HeadingLinkInfo,
   MissingIdBehavior,

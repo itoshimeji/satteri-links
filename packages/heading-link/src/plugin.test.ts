@@ -61,27 +61,15 @@ describe("satteriHeadingLink", () => {
     expect(html).not.toContain("satteri-heading-link__icon");
   });
 
-  test("merges custom classes but protects link semantics", () => {
-    const html = render("## Custom properties {#custom-properties}", {
-      linkProperties: {
-        className: ["custom-link"],
-        ariaHidden: "true",
-        tabIndex: -1,
-        href: "#wrong",
-      },
-      wrapperProperties: { className: ["custom-wrapper"] },
-      headingProperties: { className: ["custom-heading"], id: "wrong" },
-    });
+  test("places the link before the heading in start mode", () => {
+    const html = render("## Start placement {#start-placement}", { placement: "start" });
 
-    expect(html).toContain('class="satteri-heading-link satteri-heading-link--h2 custom-wrapper"');
     expect(html).toContain(
-      'id="custom-properties" class="satteri-heading-link__heading custom-heading"',
+      '<a href="#start-placement" aria-labelledby="start-placement" class="satteri-heading-link__link">',
     );
     expect(html).toContain(
-      'class="satteri-heading-link__link custom-link" href="#custom-properties"',
+      '</a><h2 id="start-placement" class="satteri-heading-link__heading">Start placement</h2>',
     );
-    expect(html).not.toContain('aria-hidden="true" tabindex="-1"');
-    expect(html).not.toContain('href="#wrong"');
   });
 
   test("limits levels", () => {
