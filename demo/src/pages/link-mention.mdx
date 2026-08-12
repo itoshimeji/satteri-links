@@ -44,17 +44,6 @@ inline mention while Markdown is processed.
 > **Experimental:** The API, generated HTML, CSS class names, and behavior may
 > change incompatibly between releases.
 
-## 🎨 Styling this demo
-
-The plugin emits class names but does not inject CSS. This page uses the
-optional preset shipped with the package:
-
-```ts
-import "satteri-link-mention/preset.css";
-```
-
-The preset can be omitted and replaced with site-specific CSS.
-
 ## 👩‍🚀 Astro setup
 
 Sätteri is the default Markdown and MDX pipeline in Astro 7. Configure the
@@ -73,6 +62,17 @@ export default defineConfig({
   },
 });
 ```
+
+## 🎨 Styling this demo
+
+The plugin emits class names but does not inject CSS. This page uses the
+optional preset shipped with the package:
+
+```ts
+import "satteri-link-mention/preset.css";
+```
+
+The preset can be omitted and replaced with site-specific CSS.
 
 ## ✅ Default mention
 
