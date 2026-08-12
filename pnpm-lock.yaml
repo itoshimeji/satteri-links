@@ -240,6 +240,9 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.2.0
         version: 14.2.0(@types/node@26.1.2)(astro@7.2.0(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.1.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0))(esbuild@0.28.1)(jiti@2.7.0)(typescript@7.0.2)(wrangler@4.119.0)(yaml@2.9.0)
+      '@astrojs/markdown-satteri':
+        specifier: ^0.3.5
+        version: 0.3.5
       '@astrojs/mdx':
         specifier: ^7.0.5
         version: 7.0.5(@astrojs/markdown-satteri@0.3.5)(astro@7.2.0(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@26.1.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0))(supports-color@10.2.2)
@@ -255,6 +258,9 @@ importers:
       satteri:
         specifier: 'catalog:'
         version: 0.9.5
+      satteri-heading-link:
+        specifier: workspace:*
+        version: link:../packages/heading-link
       satteri-link-card:
         specifier: workspace:*
         version: link:../packages/link-card
@@ -265,6 +271,21 @@ importers:
         specifier: ^4.119.0
         version: 4.119.0
     devDependencies:
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@0.2.7
+        version: '@voidzero-dev/vite-plus-core@0.2.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0)'
+      vite-plus:
+        specifier: 'catalog:'
+        version: 0.2.7(@types/node@26.1.2)(@voidzero-dev/vite-plus-core@0.2.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0))(esbuild@0.28.1)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0)
+
+  packages/heading-link:
+    devDependencies:
+      '@types/hast':
+        specifier: ^3.0.5
+        version: 3.0.5
+      satteri:
+        specifier: 'catalog:'
+        version: 0.9.5
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@0.2.7
         version: '@voidzero-dev/vite-plus-core@0.2.7(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.0)'

@@ -1,0 +1,123 @@
+/*
+ * Optional GitHub Markdown-inspired presentation for satteri-heading-link.
+ *
+ * The wrapper owns the heading's visual block styles. The heading element
+ * keeps its semantic role but inherits typography from the wrapper so styles
+ * are not applied twice.
+ *
+ * The sibling layout and end-of-line spacing follow the approach used by
+ * Starlight's anchor-links.css (reference commit
+ * 656ffd54e5b27483f542c9eb8b12fd32f44372ae).
+ */
+
+.satteri-heading-link {
+  margin-block: 1.5rem 1rem;
+  color: #1f2328;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.satteri-heading-link--h1 {
+  padding-block-end: 0.3em;
+  border-block-end: 1px solid #d1d9e0b3;
+  font-size: 2em;
+}
+
+.satteri-heading-link--h2 {
+  padding-block-end: 0.3em;
+  border-block-end: 1px solid #d1d9e0b3;
+  font-size: 1.5em;
+}
+
+.satteri-heading-link--h3 {
+  font-size: 1.25em;
+}
+
+.satteri-heading-link--h4 {
+  font-size: 1em;
+}
+
+.satteri-heading-link--h5 {
+  font-size: 0.875em;
+}
+
+.satteri-heading-link--h6 {
+  color: #59636e;
+  font-size: 0.85em;
+}
+
+.satteri-heading-link > .satteri-heading-link__heading {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  padding-inline-end: 1.1em;
+  border: 0;
+  scroll-margin-block-start: 1.5rem;
+  color: inherit;
+  font: inherit;
+}
+
+.satteri-heading-link__link {
+  display: inline-flex;
+  position: relative;
+  top: -0.08em;
+  margin-inline-start: -0.8em;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  color: inherit;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.satteri-heading-link__link::after {
+  content: "";
+  position: absolute;
+  inset: -0.25rem -0.5rem;
+}
+
+.satteri-heading-link__link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.satteri-heading-link__icon {
+  display: inline-flex;
+  width: 0.8em;
+  height: 0.8em;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+
+.satteri-heading-link__icon > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  flex: 0 0 auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .satteri-heading-link__link {
+    opacity: 0;
+  }
+
+  .satteri-heading-link:hover .satteri-heading-link__link {
+    opacity: 1;
+  }
+
+  .satteri-heading-link__link:hover {
+    color: #59636e;
+  }
+
+  .satteri-heading-link__link:focus-visible {
+    opacity: 1;
+  }
+}
+
+@media (forced-colors: active) {
+  .satteri-heading-link__link:focus-visible {
+    outline-color: CanvasText;
+  }
+}

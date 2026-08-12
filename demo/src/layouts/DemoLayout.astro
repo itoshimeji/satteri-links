@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "satteri-heading-link/preset.css";
 
 interface Frontmatter {
 	title?: string;
@@ -24,6 +25,7 @@ const documentTitle = title.startsWith("Satteri Links") ? title : `${title} · S
 const links = [
 	{ href: "/", label: "Home" },
 	{ href: "/link-card/", label: "Link Card" },
+	{ href: "/heading-link/", label: "Heading Link" },
 	{ href: "/link-mention/", label: "Link Mention" },
 ];
 ---

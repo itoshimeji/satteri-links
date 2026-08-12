@@ -4,6 +4,7 @@ dist
 .DS_Store
 .pnpm-store
 memo
+references
 
 # dotenv environment variable files
 .env

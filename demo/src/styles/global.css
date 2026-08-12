@@ -85,16 +85,12 @@ body {
   margin-top: 0;
 }
 
-.markdown-body h2 {
-  margin-top: 2.5rem;
-}
-
-.markdown-body h3 {
-  margin-top: 1.75rem;
-}
-
 .markdown-body hr {
   margin-block: 2.5rem;
+}
+
+.demo-css-owned-icon .satteri-heading-link__link::before {
+  content: "#";
 }
 
 .site-footer {

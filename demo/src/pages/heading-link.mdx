@@ -1,0 +1,196 @@
+import { satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
+import { markdownToHtml } from "satteri";
+import { satteriHeadingLink } from "satteri-heading-link";
+import "satteri-heading-link/preset.css";
+import DemoLayout from "../layouts/DemoLayout.astro";
+
+export async function renderExample(source, options = {}) {
+  const result = await markdownToHtml(source, {
+    hastPlugins: [() => satteriHeadingIdsPlugin(), satteriHeadingLink(options)],
+  });
+  return result.html;
+}
+
+export const hashIcon = await renderExample("## A compact hash icon", { icon: "#" });
+export const localized = await renderExample("## 日本語の見出し", {
+  accessibleName: ({ text }) => `「${text}」へのリンク`,
+});
+export const cssOwnedIcon = await renderExample("## A heading with a CSS-owned icon", {
+  icon: false,
+  wrapperProperties: { className: ["demo-css-owned-icon"] },
+});
+export const selectedLevels = await renderExample(
+  "# Page title\n\n## Included section\n\n### Included subsection",
+  {
+    levels: [2, 3],
+    icon: "§",
+  },
+);
+
+<DemoLayout
+  title="satteri-heading-link — Accessible heading permalinks for Sätteri"
+  description="Accessible, keyboard-operable heading permalinks for Sätteri Markdown and Astro."
+>
+
+# 🔗 satteri-heading-link
+
+`satteri-heading-link` adds accessible, keyboard-operable permalinks beside
+Markdown headings at build time. It uses a sibling heading-and-link structure.
+
+> **Experimental:** The API, generated HTML, CSS class names, and behavior may
+> change incompatibly between releases.
+
+## 🚀 Setup
+
+The plugin only decorates headings that already have an `id`. Assign IDs in an
+earlier processing stage, then run `satteriHeadingLink()`. This minimal vanilla
+Sätteri example enables explicit heading attributes, so the ID exists before
+the HAST plugin runs:
+
+```ts
+import { markdownToHtml } from "satteri";
+import { satteriHeadingLink } from "satteri-heading-link";
+
+const result = await markdownToHtml("## Installation {#installation}", {
+  features: { headingAttributes: true },
+  hastPlugins: [satteriHeadingLink()],
+});
+```
+
+For automatically generated slugs, register your heading-ID plugin before this
+plugin:
+
+```ts
+hastPlugins: [yourHeadingIdPlugin(), satteriHeadingLink()];
+```
+
+## 👨‍🚀 Astro setup
+
+Sätteri is the default Markdown and MDX pipeline in Astro 7. Configure the
+plugin through `@astrojs/markdown-satteri` in `astro.config.mjs`.
+Astro provides its own heading-ID plugin. Register it first so every heading
+has an ID when `satteriHeadingLink()` runs:
+
+```js
+import { satteri, satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
+import { defineConfig } from "astro/config";
+import { satteriHeadingLink } from "satteri-heading-link";
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      hastPlugins: [() => satteriHeadingIdsPlugin(), satteriHeadingLink()],
+    }),
+  },
+});
+```
+
+## 🎨 Styling this demo
+
+The plugin emits class names but does not inject CSS. This page uses the
+optional preset shipped with the package:
+
+```ts
+import "satteri-heading-link/preset.css";
+```
+
+The preset can be omitted and replaced with site-specific CSS. In that case,
+put heading typography, margin, padding, and borders on the
+`.satteri-heading-link--h1` through `.satteri-heading-link--h6` wrappers. Reset
+the child `.satteri-heading-link__heading` to inherit those styles; otherwise a
+relative font size can be applied twice and margins or rules can remain on the
+wrong element. The preset also gives the child heading a modest scroll offset.
+Sites with a fixed header can override it with a larger value.
+
+## ✅ Default heading link
+
+The headings on this page use the default Starlight-informed link SVG. Move the
+pointer over a heading or press `Tab` to reveal and focus the link. The link's
+accessible name is the visible heading text through `aria-labelledby`.
+
+### A deliberately very long heading demonstrates how the permalink icon wraps together with the final word instead of becoming stranded by itself on a separate line
+
+Resize the viewport to see that the icon does not become an orphaned line by
+itself. The preset uses logical properties, so the same layout works in RTL
+content.
+
+## ⚙️ Change the icon
+
+Use a string when a simple symbol is enough:
+
+```ts
+satteriHeadingLink({ icon: "#" });
+```
+
+<Fragment set:html={hashIcon} />
+
+The icon is decorative (`aria-hidden`) because the link name comes from the
+heading. An SVG HAST node or a callback receiving `{ id, text, level }` can be
+used for more control.
+
+## ♿ Localized accessible names
+
+The default name follows the heading language. A callback can provide a
+localized or more descriptive label:
+
+```ts
+satteriHeadingLink({
+  accessibleName: ({ text }) => `「${text}」へのリンク`,
+});
+```
+
+<Fragment set:html={localized} />
+
+## ⚙️ Select heading levels
+
+The default includes `h1` through `h6`, matching `rehype-autolink-headings`.
+Select only the levels you want:
+
+```ts
+satteriHeadingLink({
+  levels: [2, 3],
+  icon: "§",
+});
+```
+
+<Fragment set:html={selectedLevels} />
+
+## ⚙️ Use a CSS-owned icon
+
+Set `icon: false` when your own CSS draws the visual icon. The link remains
+named and keyboard-operable; only its decorative content is omitted.
+
+```ts
+satteriHeadingLink({
+  icon: false,
+  wrapperProperties: { className: ["demo-css-owned-icon"] },
+});
+```
+
+```css
+.demo-css-owned-icon .satteri-heading-link__link::before {
+  content: "#";
+}
+```
+
+<Fragment set:html={cssOwnedIcon} />
+
+## ✅ Accessibility checklist
+
+- The heading and permalink are sibling elements, so heading navigation stays
+  clean and nested links are avoided.
+- The permalink is a native link and remains in the keyboard tab order.
+- `aria-labelledby` gives an icon-only link the visible heading as its name.
+- `:focus-visible` remains visible even when hover icons are hidden.
+- The preset expands the pointer target and uses `user-select: none` to avoid
+  copying the icon into a selected heading.
+
+Omit the preset to provide your own styling. The HTML still has its heading
+semantics, link role, URL, and accessible name.
+
+## ⚠️ Limitations
+
+Headings without IDs are skipped by default. The plugin does not generate slugs,
+copy text to the clipboard, or run browser JavaScript.
+
+</DemoLayout>

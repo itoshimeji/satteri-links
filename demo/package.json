@@ -12,11 +12,13 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.2.0",
+    "@astrojs/markdown-satteri": "^0.3.5",
     "@astrojs/mdx": "^7.0.5",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^7.2.0",
     "github-markdown-css": "^5.9.0",
     "satteri": "catalog:",
+    "satteri-heading-link": "workspace:*",
     "satteri-link-card": "workspace:*",
     "satteri-link-mention": "workspace:*",
     "wrangler": "^4.119.0"

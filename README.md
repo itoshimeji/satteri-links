@@ -15,6 +15,8 @@ and released from one monorepo.
   metadata-rich link card.
 - 💬 [`satteri-link-mention`](./packages/link-mention) turns an empty Markdown
   link into an inline mention.
+- 🔗 [`satteri-heading-link`](./packages/heading-link) adds accessible,
+  keyboard-operable permalinks beside headings.
 - 🔎 [`@itoshinji/link-preview`](./packages/link-preview) resolves link metadata
   and images without depending on Sätteri or Markdown.
 
@@ -25,7 +27,8 @@ directly when building another integration.
 
 The feature packages can be used in Astro through `@astrojs/markdown-satteri`.
 Each package README includes the complete Astro configuration and styling
-instructions.
+instructions. For heading links, register Astro's heading ID plugin before
+the heading-link plugin in `hastPlugins`.
 
 ## 📄 License
 

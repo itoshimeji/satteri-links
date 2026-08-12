@@ -5,7 +5,7 @@ export default defineConfig({
     tasks: {
       "build:packages": {
         command:
-          "vp run --cache --filter 'satteri-link-card...' --filter 'satteri-link-mention...' build",
+          "vp run --cache --filter 'satteri-link-card...' --filter 'satteri-link-mention...' --filter 'satteri-heading-link...' build",
         cache: false,
       },
       "check:workspace": {
@@ -14,13 +14,14 @@ export default defineConfig({
         cache: false,
       },
       "test:workspace": {
-        command: "vp test",
+        command:
+          "vp run --filter @itoshinji/link-preview --filter satteri-link-card --filter satteri-link-mention --filter satteri-heading-link test",
         dependsOn: ["build:packages"],
         cache: false,
       },
       "dev:workspace": {
         command:
-          "vp run --parallel --filter @itoshinji/link-preview --filter satteri-link-card --filter satteri-link-mention --filter satteri-links-demo dev",
+          "vp run --parallel --filter @itoshinji/link-preview --filter satteri-link-card --filter satteri-link-mention --filter satteri-heading-link --filter satteri-links-demo dev",
         dependsOn: ["build:packages"],
         cache: false,
       },
