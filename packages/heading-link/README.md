@@ -222,18 +222,21 @@ The HTML remains meaningful without the preset. If you provide custom CSS,
 keep the link in the tab order, preserve a visible focus state, and keep a
 usable pointer target even when the icon is visually hidden.
 
-## 🔁 Relationship to other plugins
+## 🧭 Design choices
 
-`rehype-autolink-headings` and `satteri-autolink-headings` support multiple
-placement behaviors and general AST transformations. This package chooses one
-canonical sibling structure and focuses on accessible defaults and production
-CSS.
+`rehype-autolink-headings` is a flexible, general-purpose Unified plugin with
+several output structures and AST customization options. This package is not a
+port of that API. It standardizes a Starlight-informed, accessible pattern:
 
-It does not replace a slug or heading-ID plugin. In Astro, register
-`satteriHeadingIdsPlugin()` before `satteriHeadingLink()` as shown above.
+- The heading and permalink remain siblings in one wrapper.
+- The permalink is keyboard-focusable and named from the visible heading.
+- The plugin owns the semantic HTML while exposing a small, content-focused API.
 
-The DOM and CSS decisions are informed by Starlight's heading anchor-link
-implementation. See [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for the
+Choose this package when you want that pattern and its accompanying CSS as a
+coherent default. It requires heading IDs from another plugin and does not add
+browser JavaScript.
+
+See [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for the Starlight
 reference commit and license notice.
 
 ## 🔒 Security and limitations
