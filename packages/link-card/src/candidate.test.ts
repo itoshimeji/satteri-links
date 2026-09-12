@@ -5,7 +5,7 @@ import { findBareUrl } from "./candidate.ts";
 type HastElement = Extract<HastNode, { type: "element" }>;
 type HastRoot = Extract<HastNode, { type: "root" }>;
 
-function paragraph(href: string, start = 0, end = Buffer.byteLength(href)): HastElement {
+function paragraph(href: string, start = 0, end = href.length): HastElement {
   return {
     type: "element",
     tagName: "p",
@@ -54,12 +54,11 @@ describe("findBareUrl", () => {
     }
   });
 
-  test("uses UTF-8 byte offsets when slicing the Markdown source", () => {
-    const prefix = "日本語の段落\n\n";
+  test.each(["日本語の段落\n\n", "撮影🎥の記録\n\n"])("uses UTF-16 offsets after %s", (prefix) => {
     const href = "https://example.com/article";
     const source = `${prefix}${href}`;
-    const start = Buffer.byteLength(prefix);
-    const node = paragraph(href, start, start + Buffer.byteLength(href));
+    const start = prefix.length;
+    const node = paragraph(href, start, start + href.length);
 
     expect(findBareUrl(node, context(source, node))?.href).toBe(href);
   });
@@ -67,7 +66,7 @@ describe("findBareUrl", () => {
   test("rejects an explicitly authored Markdown link", () => {
     const href = "https://example.com/";
     const source = `[${href}](${href})`;
-    const node = paragraph(href, 0, Buffer.byteLength(source));
+    const node = paragraph(href, 0, source.length);
 
     expect(findBareUrl(node, context(source, node))).toBeUndefined();
   });

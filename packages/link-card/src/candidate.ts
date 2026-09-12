@@ -2,13 +2,6 @@ import type { HastNode, HastVisitorContext } from "satteri";
 
 type HastElement = Extract<HastNode, { type: "element" }>;
 
-function sliceUtf8(source: string, start: number, end: number): string {
-  // Sätteri's source offsets are byte offsets. Slicing a JavaScript string by
-  // code units would break when the Markdown before the URL contains UTF-8
-  // characters such as Japanese text.
-  return Buffer.from(source, "utf8").subarray(start, end).toString("utf8");
-}
-
 export function findBareUrl(
   paragraph: Readonly<HastElement>,
   context: HastVisitorContext,
@@ -48,7 +41,8 @@ export function findBareUrl(
 
   // HAST normalizes both a bare URL and an explicit same-label Markdown link
   // to the same <a>. Compare the original Markdown to distinguish them.
-  const source = sliceUtf8(context.source, position.start.offset, position.end.offset).trim();
+  // Sätteri uses UTF-16 code units, matching JavaScript string offsets.
+  const source = context.source.slice(position.start.offset, position.end.offset).trim();
   if (source !== href) {
     return undefined;
   }

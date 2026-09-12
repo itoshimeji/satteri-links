@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { markdownToHtml } from "satteri";
+import { markdownToHtml, mdxToJs } from "satteri";
 import { afterEach, describe, expect, test, vi } from "vite-plus/test";
 import { satteriLinkCard } from "./index.ts";
 import { createFileSystemImageCacheStore } from "./image-store.ts";
@@ -49,6 +49,48 @@ async function render(
 }
 
 describe("satteriLinkCard", () => {
+  test.each(["日本語の段落", "撮影🎥の記録"])(
+    "converts bare URLs after %s in Markdown and MDX",
+    async (prefix) => {
+      for (const format of ["markdown", "mdx"]) {
+        const fetch = vi
+          .fn<typeof globalThis.fetch>()
+          .mockImplementation(async () =>
+            htmlResponse('<meta property="og:title" content="Example article">'),
+          );
+        vi.stubGlobal("fetch", fetch);
+        const source = [
+          prefix,
+          "",
+          "https://example.com/article",
+          "",
+          "[https://example.com/explicit](https://example.com/explicit)",
+          "",
+          "文章中の https://example.com/inline です。",
+          "",
+          "- https://example.com/list",
+          "",
+          "> https://example.com/quote",
+        ].join("\n");
+        const options = {
+          hastPlugins: [satteriLinkCard({ metadataCache: false, favicon: false })],
+        };
+        const result =
+          format === "markdown"
+            ? await markdownToHtml(source, options)
+            : await mdxToJs(source, options);
+        const output = "html" in result ? result.html : result.code;
+        expect(output).toContain("satteri-link-card__title");
+        expect(output).toContain("Example article");
+        expect(fetch).toHaveBeenCalledTimes(1);
+        expect(output).toContain("https://example.com/explicit");
+        expect(output).toContain("https://example.com/inline");
+        expect(output).toContain("https://example.com/list");
+        expect(output).toContain("https://example.com/quote");
+      }
+    },
+  );
+
   test("converts eligible URLs without changing other links", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
       htmlResponse(`
