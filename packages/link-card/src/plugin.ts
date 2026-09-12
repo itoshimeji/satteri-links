@@ -74,6 +74,8 @@ export function satteriLinkCard(options: SatteriLinkCardOptions = {}) {
 
   return defineHastPlugin({
     name: "satteri-link-card",
+    // Bare URL detection compares the paragraph's source range with its href.
+    options: { position: true },
     element: {
       filter: ["p"],
       async visit(node, context) {
