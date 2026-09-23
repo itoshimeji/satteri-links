@@ -1,4 +1,4 @@
-import { type DefaultTreeAdapterTypes, parse } from "parse5";
+import { SAXParser, type EndTag, type StartTag, type Text } from "parse5-sax-parser";
 import type { LinkMetadata } from "./types.js";
 
 export type MetadataFetchOptions = {
@@ -7,20 +7,45 @@ export type MetadataFetchOptions = {
   timeoutMs: number;
 };
 
-type HtmlNode = DefaultTreeAdapterTypes.Node;
-type HtmlElement = DefaultTreeAdapterTypes.Element;
 type ExtractedMetadata = Omit<LinkMetadata, "url">;
+type Attribute = { name: string; value: string };
 
-function isElement(node: HtmlNode): node is HtmlElement {
-  return "tagName" in node;
+const MAX_METADATA_VALUE_CHARS = 8192;
+const METADATA_KEYS = new Set([
+  "og:title",
+  "twitter:title",
+  "og:site_name",
+  "application-name",
+  "og:description",
+  "twitter:description",
+  "description",
+  "og:image",
+  "og:image:url",
+  "twitter:image",
+]);
+const HEAD_TAGS = new Set([
+  "html",
+  "head",
+  "base",
+  "basefont",
+  "bgsound",
+  "link",
+  "meta",
+  "title",
+  "noscript",
+  "noframes",
+  "script",
+  "style",
+  "template",
+]);
+const HEAD_TEXT_TAGS = new Set(["title", "noscript", "noframes", "script", "style"]);
+
+function getAttribute(attrs: Attribute[], name: string): string | undefined {
+  return attrs.find((attribute) => attribute.name === name)?.value;
 }
 
-function getAttribute(element: HtmlElement, name: string): string | undefined {
-  return element.attrs.find((attribute) => attribute.name === name)?.value;
-}
-
-function getFaviconPriority(element: HtmlElement): number | undefined {
-  const rel = getAttribute(element, "rel")?.toLowerCase().split(/\s+/).filter(Boolean);
+function getFaviconPriority(attrs: Attribute[]): number | undefined {
+  const rel = getAttribute(attrs, "rel")?.toLowerCase().split(/\s+/).filter(Boolean);
 
   if (!rel) {
     return undefined;
@@ -41,30 +66,6 @@ function getFaviconPriority(element: HtmlElement): number | undefined {
   return undefined;
 }
 
-function collectText(node: HtmlNode): string {
-  if ("value" in node) {
-    return node.value;
-  }
-
-  if (!("childNodes" in node)) {
-    return "";
-  }
-
-  return node.childNodes.map(collectText).join("");
-}
-
-function walk(node: HtmlNode, visit: (node: HtmlNode) => void): void {
-  // Metadata should normally live in <head>, but real pages sometimes place it
-  // elsewhere or contain malformed markup. The response-size limit bounds this
-  // full-tree traversal, and parse5 has already built the complete tree.
-  visit(node);
-  if ("childNodes" in node) {
-    for (const child of node.childNodes) {
-      walk(child, visit);
-    }
-  }
-}
-
 function first(...values: Array<string | undefined>): string | undefined {
   return values.find((value) => value?.trim())?.trim();
 }
@@ -75,10 +76,7 @@ function resolveHttpUrl(value: string | undefined, base: URL): string | undefine
   }
 
   try {
-    // Open Graph image values may be absolute, root-relative, or relative to
-    // the fetched document. URL resolves all three forms without string joins.
     const url = new URL(value, base);
-    // Link previews deliberately reject data:, file:, and other non-web schemes.
     if (url.protocol === "http:" || url.protocol === "https:") {
       return url.href;
     }
@@ -89,126 +87,213 @@ function resolveHttpUrl(value: string | undefined, base: URL): string | undefine
   return undefined;
 }
 
-export function extractMetadata(html: string, documentUrl: URL): ExtractedMetadata {
-  // Use an HTML parser instead of regular expressions because metadata pages
-  // often contain irregular markup, entity references, or reordered attrs.
-  const document = parse(html);
-  const metadata = new Map<string, string>();
-  let title: string | undefined;
-  let faviconCandidate: { priority: number; value: string } | undefined;
+class MetadataCollector {
+  private readonly metadata = new Map<string, string>();
+  private title: string | undefined;
+  private titleText = "";
+  private textTag: string | undefined;
+  private templateDepth = 0;
+  private phase: "head" | "body" = "head";
+  private faviconCandidate: { priority: number; value: string } | undefined;
+  done = false;
 
-  walk(document, (node) => {
-    if (!isElement(node)) {
-      return;
-    }
-
-    if (node.tagName === "title" && !title) {
-      title = collectText(node).trim();
-      return;
-    }
-
-    if (node.tagName === "link") {
-      const priority = getFaviconPriority(node);
-      const href = getAttribute(node, "href")?.trim();
-      if (priority !== undefined && href) {
-        if (!faviconCandidate || priority < faviconCandidate.priority) {
-          faviconCandidate = { priority, value: href };
-        }
-      }
-      return;
-    }
-
-    if (node.tagName !== "meta") {
-      return;
-    }
-
-    // Open Graph conventionally uses `property`, while standard metadata and
-    // Twitter Cards commonly use `name`. Supporting both also tolerates pages
-    // that use a non-standard attribute for a known metadata key.
-    const key = first(
-      getAttribute(node, "property")?.toLowerCase(),
-      getAttribute(node, "name")?.toLowerCase(),
-    );
-    const content = getAttribute(node, "content")?.trim();
-    // Keep the first declaration. This makes duplicate or malformed metadata
-    // deterministic and matches the order in which the document presents it.
-    if (key && content && !metadata.has(key)) {
-      metadata.set(key, content);
-    }
-  });
-
-  return {
-    // Prefer metadata intended for rich previews, then progressively fall back
-    // to more general document metadata so incomplete pages still form a card.
-    title:
-      first(metadata.get("og:title"), metadata.get("twitter:title"), title) ?? documentUrl.hostname,
-    siteName: first(metadata.get("og:site_name"), metadata.get("application-name")),
-    description: first(
-      metadata.get("og:description"),
-      metadata.get("twitter:description"),
-      metadata.get("description"),
-    ),
-    image: resolveHttpUrl(
-      first(metadata.get("og:image"), metadata.get("og:image:url"), metadata.get("twitter:image")),
-      documentUrl,
-    ),
-    favicon:
-      resolveHttpUrl(faviconCandidate?.value, documentUrl) ??
-      resolveHttpUrl("/favicon.ico", documentUrl),
-  };
-}
-
-async function readResponseText(response: Response, maxBytes: number): Promise<string> {
-  // response.text() would buffer the entire body before its size could be
-  // checked. Reading chunks lets the build stop downloading and buffering as
-  // soon as an unexpectedly large page crosses the configured limit.
-  // Content-Length is an inexpensive early check, but it is optional and can
-  // be absent. The streaming check below protects responses with no length.
-  const declaredLength = Number(response.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-    throw new Error("Link preview response is too large");
+  private get realTitle(): string | undefined {
+    return first(this.metadata.get("og:title"), this.metadata.get("twitter:title"), this.title);
   }
 
+  private endHead(): void {
+    if (this.phase === "head") {
+      this.phase = "body";
+      this.done = !!this.realTitle;
+    }
+  }
+
+  onStartTag({ tagName, attrs }: StartTag): void {
+    // The end tag is optional in HTML. A body tag or body-only element also
+    // ends the head; an ambiguous page remains bounded by maxBytes.
+    if (this.phase === "head" && this.templateDepth === 0 && !HEAD_TAGS.has(tagName)) {
+      this.endHead();
+    }
+    if (tagName === "body") {
+      this.endHead();
+    }
+    if (this.done) {
+      return;
+    }
+
+    if (tagName === "template" && this.phase === "head") {
+      this.templateDepth += 1;
+    }
+    if (HEAD_TEXT_TAGS.has(tagName)) {
+      this.textTag = tagName;
+      if (tagName === "title") {
+        this.titleText = "";
+      }
+    }
+
+    if (tagName === "link") {
+      const priority = getFaviconPriority(attrs);
+      const href = getAttribute(attrs, "href")?.trim();
+      if (
+        priority !== undefined &&
+        href &&
+        href.length <= MAX_METADATA_VALUE_CHARS &&
+        (!this.faviconCandidate || priority < this.faviconCandidate.priority)
+      ) {
+        this.faviconCandidate = { priority, value: href };
+      }
+    } else if (tagName === "meta") {
+      const key = first(
+        getAttribute(attrs, "property")?.toLowerCase(),
+        getAttribute(attrs, "name")?.toLowerCase(),
+      );
+      const content = getAttribute(attrs, "content")?.trim();
+      if (
+        key &&
+        METADATA_KEYS.has(key) &&
+        content &&
+        content.length <= MAX_METADATA_VALUE_CHARS &&
+        !this.metadata.has(key)
+      ) {
+        this.metadata.set(key, content);
+      }
+    }
+
+    if (this.phase === "body" && this.realTitle) {
+      this.done = true;
+    }
+  }
+
+  onEndTag({ tagName }: EndTag): void {
+    if (tagName === "title" && this.textTag === "title") {
+      this.title ||= this.titleText.trim();
+    }
+    if (tagName === this.textTag) {
+      this.textTag = undefined;
+    }
+    if (tagName === "template" && this.templateDepth > 0) {
+      this.templateDepth -= 1;
+    }
+    if (tagName === "head") {
+      this.endHead();
+    }
+    if (this.phase === "body" && this.realTitle) {
+      this.done = true;
+    }
+  }
+
+  onText({ text }: Text): void {
+    if (this.textTag === "title") {
+      this.titleText += text.slice(0, MAX_METADATA_VALUE_CHARS - this.titleText.length);
+    } else if (this.phase === "head" && this.templateDepth === 0 && !this.textTag && text.trim()) {
+      this.endHead();
+    }
+  }
+
+  finish(documentUrl: URL): ExtractedMetadata {
+    // A scan limit can be reached in the middle of an unclosed title element.
+    const title = first(this.title, this.textTag === "title" ? this.titleText : undefined);
+    return {
+      title:
+        first(this.metadata.get("og:title"), this.metadata.get("twitter:title"), title) ??
+        documentUrl.hostname,
+      siteName: first(this.metadata.get("og:site_name"), this.metadata.get("application-name")),
+      description: first(
+        this.metadata.get("og:description"),
+        this.metadata.get("twitter:description"),
+        this.metadata.get("description"),
+      ),
+      image: resolveHttpUrl(
+        first(
+          this.metadata.get("og:image"),
+          this.metadata.get("og:image:url"),
+          this.metadata.get("twitter:image"),
+        ),
+        documentUrl,
+      ),
+      favicon:
+        resolveHttpUrl(this.faviconCandidate?.value, documentUrl) ??
+        resolveHttpUrl("/favicon.ico", documentUrl),
+    };
+  }
+}
+
+async function writeParser(parser: SAXParser, chunk: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    parser.write(chunk, (error) => (error ? reject(error) : resolve()));
+  });
+}
+
+async function readMetadata(
+  response: Response,
+  documentUrl: URL,
+  maxBytes: number,
+): Promise<ExtractedMetadata> {
+  const collector = new MetadataCollector();
   if (!response.body) {
-    return "";
+    return collector.finish(documentUrl);
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let bytesRead = 0;
-  let html = "";
+  const parser = new SAXParser();
+  parser.on("error", () => undefined);
+  const onToken = () => {
+    if (collector.done) {
+      parser.stop();
+    }
+  };
+  parser.on("startTag", (token: StartTag) => {
+    collector.onStartTag(token);
+    onToken();
+  });
+  parser.on("endTag", (token: EndTag) => {
+    collector.onEndTag(token);
+    onToken();
+  });
+  parser.on("text", (token: Text) => {
+    collector.onText(token);
+    onToken();
+  });
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
+  let bytesScanned = 0;
+  let reachedEof = false;
+  try {
+    while (!collector.done && bytesScanned < maxBytes) {
+      const { done, value } = await reader.read();
+      if (done) {
+        reachedEof = true;
+        break;
+      }
+
+      // The limit applies to bytes passed to the parser, not to the declared
+      // size of a page whose useful head may be only a few kilobytes long.
+      const length = Math.min(value.byteLength, maxBytes - bytesScanned);
+      bytesScanned += length;
+      const html = decoder.decode(value.subarray(0, length), { stream: true });
+      await writeParser(parser, html);
     }
 
-    bytesRead += value.byteLength;
-    if (bytesRead > maxBytes) {
-      // Cancel as soon as the limit is crossed instead of buffering the rest
-      // of a response that can never produce a card.
-      await reader.cancel();
-      throw new Error("Link preview response is too large");
+    if (!collector.done) {
+      await new Promise<void>((resolve, reject) => {
+        parser.once("error", reject);
+        parser.end(decoder.decode(), resolve);
+      });
     }
-
-    // A UTF-8 character may be split across response chunks. Streaming decode
-    // preserves an incomplete byte sequence until the next chunk arrives.
-    html += decoder.decode(value, { stream: true });
+    return collector.finish(documentUrl);
+  } finally {
+    if (!reachedEof) {
+      await reader.cancel().catch(() => undefined);
+    }
+    reader.releaseLock();
+    parser.destroy();
   }
-
-  // Signal end-of-input so TextDecoder flushes any bytes retained by streaming
-  // mode. This is usually an empty string when the last chunk ended cleanly.
-  return html + decoder.decode();
 }
 
 export async function fetchMetadata(
   url: URL,
   options: MetadataFetchOptions,
 ): Promise<LinkMetadata> {
-  // The caller owns the fetch implementation so it can add access control,
-  // proxying, retries, or SSRF protection while this plugin still enforces a
-  // timeout and HTML/size constraints around the request.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
 
@@ -230,12 +315,8 @@ export async function fetchMetadata(
       throw new Error("Link preview response is not HTML");
     }
 
-    const html = await readResponseText(response, options.maxBytes);
     const responseUrl = response.url ? new URL(response.url) : url;
-    // These URLs intentionally serve different roles. The final response URL
-    // is only parsing context for relative assets and hostname fallbacks; the
-    // original Markdown URL remains the card destination.
-    return { url: url.href, ...extractMetadata(html, responseUrl) };
+    return { url: url.href, ...(await readMetadata(response, responseUrl, options.maxBytes)) };
   } finally {
     clearTimeout(timeout);
   }

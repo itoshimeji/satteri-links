@@ -327,9 +327,9 @@ importers:
 
   packages/link-preview:
     dependencies:
-      parse5:
-        specifier: ^8.0.1
-        version: 8.0.1
+      parse5-sax-parser:
+        specifier: ^8.0.0
+        version: 8.0.0
     devDependencies:
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@0.2.7
@@ -2403,6 +2403,9 @@ packages:
 
   package-manager-detector@1.8.0:
     resolution: {integrity: sha512-yQA4H19AmPEoMUeavPMDIe1higySl/gH/yaQrkT/s07Qp+7pp2hYz30N3z2l5BkjVkF9Ow6o0wjJamm2y7Sn0A==}
+
+  parse5-sax-parser@8.0.0:
+    resolution: {integrity: sha512-/dQ8UzHZwnrzs3EvDj6IkKrD/jIZyTlB+8XrHJvcjNgRdmWruNdN9i9RK/JtxakmlUdPwKubKPTCqvbTgzGhrw==}
 
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
@@ -4549,6 +4552,10 @@ snapshots:
   p-timeout@7.0.1: {}
 
   package-manager-detector@1.8.0: {}
+
+  parse5-sax-parser@8.0.0:
+    dependencies:
+      parse5: 8.0.1
 
   parse5@8.0.1:
     dependencies:

@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vite-plus/test";
-import { extractMetadata, fetchMetadata, type MetadataFetchOptions } from "./metadata.ts";
+import { fetchMetadata, type MetadataFetchOptions } from "./metadata.ts";
 
 function options(
   fetch: typeof globalThis.fetch,
@@ -22,9 +22,18 @@ function htmlResponse(html: string, headers?: Record<string, string>): Response 
   });
 }
 
+async function extractMetadata(html: string, url: URL) {
+  const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(htmlResponse(html));
+  const { url: _url, ...metadata } = await fetchMetadata(
+    url,
+    options(fetch, { maxBytes: 1024 * 1024 }),
+  );
+  return metadata;
+}
+
 describe("extractMetadata", () => {
-  test("prefers Open Graph, Twitter, then regular metadata", () => {
-    const metadata = extractMetadata(
+  test("prefers Open Graph, Twitter, then regular metadata", async () => {
+    const metadata = await extractMetadata(
       `
         <title>Document title</title>
         <meta name="description" content="Regular description">
@@ -40,23 +49,27 @@ describe("extractMetadata", () => {
     expect(metadata).not.toHaveProperty("url");
   });
 
-  test("extracts an Open Graph or application site name", () => {
+  test("extracts an Open Graph or application site name", async () => {
     expect(
-      extractMetadata(
-        '<meta name="application-name" content="Application"><meta property="og:site_name" content="Open Graph">',
-        new URL("https://example.com/"),
+      (
+        await extractMetadata(
+          '<meta name="application-name" content="Application"><meta property="og:site_name" content="Open Graph">',
+          new URL("https://example.com/"),
+        )
       ).siteName,
     ).toBe("Open Graph");
     expect(
-      extractMetadata(
-        '<meta name="application-name" content="Application">',
-        new URL("https://example.com/"),
+      (
+        await extractMetadata(
+          '<meta name="application-name" content="Application">',
+          new URL("https://example.com/"),
+        )
       ).siteName,
     ).toBe("Application");
   });
 
-  test("resolves relative image URLs against the page URL", () => {
-    const metadata = extractMetadata(
+  test("resolves relative image URLs against the page URL", async () => {
+    const metadata = await extractMetadata(
       '<meta property="og:image" content="../images/card.png">',
       new URL("https://example.com/posts/article"),
     );
@@ -64,8 +77,8 @@ describe("extractMetadata", () => {
     expect(metadata.image).toBe("https://example.com/images/card.png");
   });
 
-  test("selects the highest-priority favicon and resolves it against the page URL", () => {
-    const metadata = extractMetadata(
+  test("selects the highest-priority favicon and resolves it against the page URL", async () => {
+    const metadata = await extractMetadata(
       `
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <link rel="shortcut icon" href="/shortcut.ico">
@@ -77,22 +90,26 @@ describe("extractMetadata", () => {
     expect(metadata.favicon).toBe("https://example.com/articles/icons/favicon.svg");
   });
 
-  test("falls back to the origin favicon when no favicon link exists", () => {
-    const metadata = extractMetadata("<title>Example</title>", new URL("https://example.com/page"));
+  test("falls back to the origin favicon when no favicon link exists", async () => {
+    const metadata = await extractMetadata(
+      "<title>Example</title>",
+      new URL("https://example.com/page"),
+    );
 
     expect(metadata.favicon).toBe("https://example.com/favicon.ico");
   });
 
-  test("falls back to the document title and hostname", () => {
+  test("falls back to the document title and hostname", async () => {
     expect(
-      extractMetadata("<title>Document title</title>", new URL("https://example.com/")).title,
+      (await extractMetadata("<title>Document title</title>", new URL("https://example.com/")))
+        .title,
     ).toBe("Document title");
-    expect(extractMetadata("", new URL("https://example.com/")).title).toBe("example.com");
+    expect((await extractMetadata("", new URL("https://example.com/"))).title).toBe("example.com");
   });
 
-  test("ignores invalid and non-HTTP image URLs", () => {
+  test("ignores invalid and non-HTTP image URLs", async () => {
     for (const image of ["http://[invalid", "data:image/png;base64,AAAA"]) {
-      const metadata = extractMetadata(
+      const metadata = await extractMetadata(
         `<meta property="og:image" content="${image}">`,
         new URL("https://example.com/"),
       );
@@ -136,18 +153,103 @@ describe("fetchMetadata", () => {
     );
   });
 
-  test("enforces declared and streamed response size limits", async () => {
-    const declared = vi
-      .fn<typeof globalThis.fetch>()
-      .mockResolvedValue(htmlResponse("12345", { "content-length": "5" }));
-    const streamed = vi.fn<typeof globalThis.fetch>().mockResolvedValue(htmlResponse("12345"));
+  test("uses metadata in a short head even when the declared response is large", async () => {
+    let cancelled = false;
+    let chunksRead = 0;
+    const chunks = [
+      '<html><head><meta property="og:title" content="Overreacted"><meta property="og:image" content="/card.png"></head>',
+      "<body>" + "x".repeat(1024 * 1024),
+      "</body>",
+    ];
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        pull(controller) {
+          controller.enqueue(new TextEncoder().encode(chunks[chunksRead++]));
+          if (chunksRead === chunks.length) {
+            controller.close();
+          }
+        },
+        cancel() {
+          cancelled = true;
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response(stream, {
+        headers: { "content-type": "text/html", "content-length": "2000000" },
+      }),
+    );
 
-    await expect(
-      fetchMetadata(new URL("https://example.com/declared"), options(declared, { maxBytes: 4 })),
-    ).rejects.toThrow("too large");
-    await expect(
-      fetchMetadata(new URL("https://example.com/streamed"), options(streamed, { maxBytes: 4 })),
-    ).rejects.toThrow("too large");
+    const metadata = await fetchMetadata(
+      new URL("https://example.com/article"),
+      options(fetch, { maxBytes: 1024 }),
+    );
+
+    expect(metadata.title).toBe("Overreacted");
+    expect(metadata.image).toBe("https://example.com/card.png");
+    expect(chunksRead).toBe(1);
+    expect(cancelled).toBe(true);
+  });
+
+  test("searches the body only when the head has no real title", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        htmlResponse(
+          '<html><head><meta name="description" content="From head"></head><body><meta property="og:title" content="From body"></body></html>',
+        ),
+      );
+
+    const metadata = await fetchMetadata(new URL("https://example.com/"), options(fetch));
+
+    expect(metadata.title).toBe("From body");
+    expect(metadata.description).toBe("From head");
+  });
+
+  test("recognizes an omitted head end tag and split UTF-8 text", async () => {
+    const html =
+      '<html><head><title>日本語</title><body><meta property="og:title" content="Too late">';
+    const bytes = new TextEncoder().encode(html);
+    const split = bytes.indexOf(0xe6) + 1;
+    const chunks = [bytes.subarray(0, split), bytes.subarray(split)];
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const chunk = chunks.shift();
+        if (chunk) {
+          controller.enqueue(chunk);
+        } else {
+          controller.close();
+        }
+      },
+    });
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(new Response(stream, { headers: { "content-type": "text/html" } }));
+
+    const metadata = await fetchMetadata(new URL("https://example.com/"), options(fetch));
+
+    expect(metadata.title).toBe("日本語");
+  });
+
+  test("stops scanning at the byte budget and keeps collected metadata", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        htmlResponse(
+          '<head><meta name="description" content="Known"></head><body>' +
+            "x".repeat(200) +
+            '<meta property="og:title" content="Beyond budget">',
+        ),
+      );
+
+    const metadata = await fetchMetadata(
+      new URL("https://example.com/"),
+      options(fetch, { maxBytes: 80 }),
+    );
+
+    expect(metadata.title).toBe("example.com");
+    expect(metadata.description).toBe("Known");
   });
 
   test("aborts requests after the timeout", async () => {
@@ -164,5 +266,23 @@ describe("fetchMetadata", () => {
       fetchMetadata(new URL("https://example.com/slow"), options(fetch, { timeoutMs: 1 })),
     ).rejects.toThrow();
     expect(fetch.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+  });
+
+  test("aborts while waiting for more body bytes", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>((_input, init) => {
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("<head></head><body>"));
+          init?.signal?.addEventListener("abort", () => {
+            controller.error(new Error("aborted"));
+          });
+        },
+      });
+      return Promise.resolve(new Response(stream, { headers: { "content-type": "text/html" } }));
+    });
+
+    await expect(
+      fetchMetadata(new URL("https://example.com/slow-body"), options(fetch, { timeoutMs: 1 })),
+    ).rejects.toThrow("aborted");
   });
 });

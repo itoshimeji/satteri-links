@@ -14,7 +14,7 @@ use it internally.
 ## ✨ Features
 
 - Resolves titles, site names, descriptions, Open Graph images, and favicons
-- Applies request timeouts and response-size limits
+- Applies request timeouts and bounded HTML metadata scans
 - Supports filesystem metadata and image caches
 - Accepts custom `fetch` implementations and image-cache stores
 - Returns predictable fallbacks when metadata or image requests fail
@@ -42,6 +42,10 @@ const metadata = await resolveMetadata(new URL("https://example.com/article"));
 ```
 
 Metadata failures return `undefined` instead of throwing a request error.
+The metadata resolver reads the HTML head first and stops at its end if it found a title.
+If the head has no title, it scans the body within the same byte budget.
+`maxHtmlBytes` defaults to 1 MiB and limits bytes inspected, not the size
+declared by `Content-Length`; `timeoutMs` defaults to 5 seconds.
 
 ## 🖼️ Image example
 

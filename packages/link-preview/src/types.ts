@@ -15,7 +15,9 @@ export type FileSystemMetadataCacheOptions = {
 export type CreateMetadataResolverOptions = {
   cache?: false | FileSystemMetadataCacheOptions;
   fetch?: typeof globalThis.fetch;
+  /** Maximum number of HTML response bytes inspected for metadata. */
   maxHtmlBytes?: number;
+  /** Deadline for fetching and scanning metadata, in milliseconds. */
   timeoutMs?: number;
 };
 
