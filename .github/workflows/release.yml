@@ -29,6 +29,7 @@ jobs:
           cache: false
           run-install: |
             args: ['--frozen-lockfile']
+      - uses: ./.github/actions/setup-release-pnpm
       - uses: changesets/action/select-mode@v2.1.2
         id: mode
       - uses: changesets/action/version@v2.1.2

@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: true
+      - uses: ./.github/actions/setup-release-pnpm
       - run: vp run check:workspace
       - run: vp run test:workspace
       - run: vp run release:check

@@ -6,7 +6,7 @@
   "linked": [],
   "access": "public",
   "baseBranch": "main",
-  "format": "oxfmt",
+  "format": false,
   "updateInternalDependencies": "patch",
   "privatePackages": { "version": false, "tag": false },
   "ignore": []

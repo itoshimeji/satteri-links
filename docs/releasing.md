@@ -119,7 +119,17 @@ and a second human approval on npm.
 
 Use GitHub-hosted runners, as specified here. The workflow pins pnpm 11.18.0
 through the existing `devEngines` configuration; its native publish implementation
-supports trusted publishing. Changesets v3 invokes pnpm for the pnpm workspace.
+supports trusted publishing. After Vite+ installs dependencies, the shared
+`setup-release-pnpm` action reads that same pin and uses `pnpm/action-setup` to put
+pnpm on the child-process PATH in CI and every Changesets job. Vite+'s internal
+package-manager runner alone does not make pnpm available to Changesets, which
+spawns it directly. A version probe rejects missing or mismatched executables;
+release regression tests run the real `publish-plan` command against a local
+fixture registry and reproduce the missing-PATH failure without publishing.
+Changesets' own formatter is disabled because Vite+'s `oxfmt` wrapper supports
+IDE integration only; command-line formatting uses `vp fmt`. The `release:version`
+script formats generated changelogs and manifests with `vp fmt` after updating
+the lockfile.
 `PNPM_CONFIG_PROVENANCE=true` requests provenance for public package publication.
 Node 24 is used for release jobs. No authentication is needed for installing the
 public dependencies.
@@ -140,6 +150,9 @@ supported; no token bypass is required.
 
 - If version PR creation is forbidden, check the Actions setting and repository
   rules. Do not weaken branch protection or create credentials just to retry.
+- If Changesets reports `spawn pnpm ENOENT`, verify the shared pnpm setup runs
+  after Vite+ setup and before Changesets in that job. A passing build or
+  `vp install` does not prove that Changesets child processes can find pnpm.
 - If checks fail, fix the cause in a normal PR and update the release PR. Run CI
   on its new head before merging.
 - If publishing fails, inspect the workflow logs and correct publisher fields,
