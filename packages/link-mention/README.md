@@ -40,7 +40,7 @@ const result = await markdownToHtml("See [](https://example.com/article) for det
 Only an empty HTTP or HTTPS Markdown link is converted. Bare URLs and links with
 authored text stay unchanged.
 
-## 🌌 Astro setup
+## 👨‍🚀 Astro setup
 
 Install the Astro processor and configure it in `astro.config.mjs`:
 
