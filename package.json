@@ -10,7 +10,7 @@
     "check": "vp run check:workspace",
     "changeset": "changeset",
     "release:version": "changeset version && vp install --lockfile-only && vp fmt",
-    "release:check": "node --test scripts/release.test.mjs scripts/release-pnpm.test.mjs",
+    "release:check": "node --test scripts/release.test.mjs scripts/release-pnpm.test.mjs scripts/resolve-release.test.mjs",
     "release:pack": "node scripts/verify-release-pack.mjs --pack"
   },
   "devDependencies": {
