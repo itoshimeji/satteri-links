@@ -26,6 +26,8 @@ export type MentionOptions = {
 };
 
 export type SatteriLinkMentionOptions = {
+  /** Fetch implementation for metadata and image-cache downloads. Defaults to globalThis.fetch. */
+  fetch?: typeof globalThis.fetch;
   metadataCache?: MetadataCacheOptions | false;
   imageCache?: boolean | ImageCacheOptions;
   mention?: MentionOptions;

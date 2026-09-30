@@ -106,19 +106,39 @@ satteriLinkCard({
 });
 ```
 
-| Option                     | Default                    | Description                                                         |
-| -------------------------- | -------------------------- | ------------------------------------------------------------------- |
-| `metadataCache`            | `{}`                       | Metadata cache settings, or `false` to disable the cache.           |
-| `metadataCache.directory`  | `.cache/satteri-link-card` | Directory for cached metadata files.                                |
-| `metadataCache.maxAge`     | 30 days                    | Maximum age in milliseconds, or `false` to never expire.            |
-| `imageCache`               | `false`                    | Enables the filesystem image cache or accepts custom store options. |
-| `imageCache.maxImageBytes` | 5 MiB                      | Maximum download size for one cached image.                         |
-| `thumbnail`                | `{ position: "right" }`    | Sets the thumbnail position; use `false` to omit it.                |
-| `favicon`                  | enabled                    | Use `false` to omit favicon discovery and rendering.                |
-| `shortenUrl`               | `true`                     | Shows only the hostname instead of the full URL.                    |
-| `ignoreExtensions`         | `[]`                       | Leaves URLs with matching path extensions unchanged.                |
-| `transformMetadata`        | `undefined`                | Changes resolved metadata before rendering and asset caching.       |
-| `openInNewTab`             | `true`                     | Adds `target="_blank"` and `rel="noopener noreferrer"`.             |
+| Option                     | Default                    | Description                                                           |
+| -------------------------- | -------------------------- | --------------------------------------------------------------------- |
+| `fetch`                    | `globalThis.fetch`         | Fetch API-compatible function for metadata and image-cache downloads. |
+| `metadataCache`            | `{}`                       | Metadata cache settings, or `false` to disable the cache.             |
+| `metadataCache.directory`  | `.cache/satteri-link-card` | Directory for cached metadata files.                                  |
+| `metadataCache.maxAge`     | 30 days                    | Maximum age in milliseconds, or `false` to never expire.              |
+| `imageCache`               | `false`                    | Enables the filesystem image cache or accepts custom store options.   |
+| `imageCache.maxImageBytes` | 5 MiB                      | Maximum download size for one cached image.                           |
+| `thumbnail`                | `{ position: "right" }`    | Sets the thumbnail position; use `false` to omit it.                  |
+| `favicon`                  | enabled                    | Use `false` to omit favicon discovery and rendering.                  |
+| `shortenUrl`               | `true`                     | Shows only the hostname instead of the full URL.                      |
+| `ignoreExtensions`         | `[]`                       | Leaves URLs with matching path extensions unchanged.                  |
+| `transformMetadata`        | `undefined`                | Changes resolved metadata before rendering and asset caching.         |
+| `openInNewTab`             | `true`                     | Adds `target="_blank"` and `rel="noopener noreferrer"`.               |
+
+## 🌐 Custom fetch
+
+Pass a Fetch API-compatible function with the same signature as
+`globalThis.fetch`:
+
+```ts
+const customFetch: typeof globalThis.fetch = (input, init) => globalThis.fetch(input, init);
+
+satteriLinkCard({
+  fetch: customFetch,
+  imageCache: true,
+});
+```
+
+This example delegates to the default fetch. The same function handles metadata
+requests and, when `imageCache` is enabled, thumbnail and favicon downloads.
+Cache hits do not make requests. Without this option, the plugin uses
+`globalThis.fetch`.
 
 ## 💾 Image cache
 
@@ -147,8 +167,16 @@ not cached. Image-cache failures fall back to the remote asset URL.
 ## 🔒 Security and limitations
 
 Metadata and image requests run in the build environment. Use the plugin only
-with trusted Markdown. Requests to private or local network addresses are not
-currently blocked.
+with trusted Markdown. The default fetch does not block requests to private or
+local network addresses. Supplying `fetch` does not itself enable SSRF protection;
+URL, redirect, and network access restrictions are the responsibility of your
+fetch implementation.
+
+Rejecting a metadata request leaves the original link unchanged. Rejecting an
+image-cache request falls back to the remote asset URL, so refusing a download
+does not guarantee that external image URLs are removed from the generated HTML.
+When `imageCache` is disabled, image URLs are rendered without fetching them in
+the build environment.
 
 The plugin does not provide offline builds, cache pruning, or concurrency limits
 across different URLs.

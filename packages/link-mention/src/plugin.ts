@@ -43,11 +43,15 @@ function resolveOptions(options: SatteriLinkMentionOptions): ResolvedSatteriLink
 
 export function satteriLinkMention(options: SatteriLinkMentionOptions = {}) {
   const resolvedOptions = resolveOptions(options);
-  const resolveMetadata = createMetadataResolver({ cache: resolvedOptions.metadataCache });
+  const resolveMetadata = createMetadataResolver({
+    cache: resolvedOptions.metadataCache,
+    fetch: options.fetch,
+  });
   const resolveImage =
     resolvedOptions.imageCache === false
       ? undefined
       : createImageResolver({
+          fetch: options.fetch,
           maxBytes: resolvedOptions.imageCache.maxImageBytes,
           store: resolvedOptions.imageCache.store,
         });
