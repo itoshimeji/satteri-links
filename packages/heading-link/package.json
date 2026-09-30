@@ -19,7 +19,7 @@
   "author": "Daichi Hamazaki (https://github.com/itoshinji)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ItoShimeji/satteri-links.git",
+    "url": "git+https://github.com/itoshimeji/satteri-links.git",
     "directory": "packages/heading-link"
   },
   "files": [

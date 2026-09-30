@@ -33,3 +33,8 @@ the heading-link plugin in `hastPlugins`.
 ## 📄 License
 
 [MIT](./LICENSE)
+
+## Releasing
+
+Maintainers use Changesets release PRs and npm trusted publishing. See
+[the release guide](docs/releasing.md) for the workflow and one-time setup.

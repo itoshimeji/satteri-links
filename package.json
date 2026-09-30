@@ -8,14 +8,14 @@
     "dev": "vp run dev:workspace",
     "test": "vp run test:workspace",
     "check": "vp run check:workspace",
-    "release:card": "bumpp packages/link-card/package.json --no-push --commit \"chore: release satteri-link-card v%s\" --tag \"satteri-link-card-v%s\"",
-    "release:mention": "bumpp packages/link-mention/package.json --no-push --commit \"chore: release satteri-link-mention v%s\" --tag \"satteri-link-mention-v%s\"",
-    "release:heading": "bumpp packages/heading-link/package.json --no-push --commit \"chore: release satteri-heading-link v%s\" --tag \"satteri-heading-link-v%s\"",
-    "release:preview": "bumpp packages/link-preview/package.json --no-push --commit \"chore: release @itoshinji/link-preview v%s\" --tag \"link-preview-v%s\""
+    "changeset": "changeset",
+    "release:version": "changeset version && vp install --lockfile-only && vp fmt",
+    "release:check": "node --test scripts/release.test.mjs",
+    "release:pack": "node scripts/verify-release-pack.mjs --pack"
   },
   "devDependencies": {
+    "@changesets/cli": "3.0.3",
     "@types/node": "^26.1.1",
-    "bumpp": "^11.1.0",
     "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"

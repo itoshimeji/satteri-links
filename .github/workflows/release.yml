@@ -1,0 +1,40 @@
+name: Release PR
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release-pr-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: voidzero-dev/setup-vp@v1.17.0
+        with:
+          node-version: 24
+          cache: false
+          run-install: |
+            args: ['--frozen-lockfile']
+      - uses: changesets/action/select-mode@v2.1.2
+        id: mode
+      - uses: changesets/action/version@v2.1.2
+        if: steps.mode.outputs.mode == 'version'
+        with:
+          script: vp run release:version
+          commit-message: "chore: version packages"
+          pr-title: "chore: release packages"
+          pr-base-branch: main
