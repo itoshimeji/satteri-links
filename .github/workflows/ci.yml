@@ -22,3 +22,5 @@ jobs:
           cache: true
       - run: vp run check:workspace
       - run: vp run test:workspace
+      - run: vp run release:check
+      - run: vp run release:pack
