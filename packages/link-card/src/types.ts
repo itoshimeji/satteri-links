@@ -26,6 +26,8 @@ export type ImageCacheOptions = {
 };
 
 export type SatteriLinkCardOptions = {
+  /** Fetch implementation for metadata and image-cache downloads. Defaults to globalThis.fetch. */
+  fetch?: typeof globalThis.fetch;
   metadataCache?: MetadataCacheOptions | false;
   shortenUrl?: boolean;
   thumbnail?: false | ThumbnailOptions;

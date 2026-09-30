@@ -49,6 +49,46 @@ async function render(
 }
 
 describe("satteriLinkCard", () => {
+  test("uses a custom fetch for metadata without the image cache", async () => {
+    const defaultFetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", defaultFetch);
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        htmlResponse(
+          '<title>Custom title</title><meta property="og:image" content="/card.png"><link rel="icon" href="/favicon.ico">',
+        ),
+      );
+
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [satteriLinkCard({ metadataCache: false, fetch })],
+    });
+
+    expect(result.html).toContain("Custom title");
+    expect(result.html).toContain('src="https://example.com/card.png"');
+    expect(result.html).toContain('src="https://example.com/favicon.ico"');
+    expect(fetch.mock.calls.map(([input]) => inputUrl(input))).toEqual([
+      "https://example.com/article",
+    ]);
+    expect(defaultFetch).not.toHaveBeenCalled();
+  });
+
+  test("keeps the original link when a custom fetch rejects metadata", async () => {
+    const defaultFetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", defaultFetch);
+    const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValue(new Error("Rejected"));
+
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [satteriLinkCard({ metadataCache: false, fetch })],
+    });
+
+    expect(result.html).toBe(
+      '<p><a href="https://example.com/article">https://example.com/article</a></p>\n',
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(defaultFetch).not.toHaveBeenCalled();
+  });
+
   test.each(["日本語の段落", "撮影🎥の記録"])(
     "converts bare URLs after %s in Markdown and MDX",
     async (prefix) => {
@@ -192,7 +232,7 @@ describe("satteriLinkCard", () => {
     expect(result.html).not.toContain("satteri-link-card__favicon");
   });
 
-  test("caches thumbnails and favicons through the image cache", async () => {
+  test.each([false, true])("caches thumbnails and favicons (custom fetch: %s)", async (custom) => {
     const directory = await mkdtemp(join(tmpdir(), "satteri-link-card-images-"));
     temporaryDirectories.push(directory);
     const imageStore = createFileSystemImageCacheStore({
@@ -214,8 +254,10 @@ describe("satteriLinkCard", () => {
       }
       throw new Error(`Unexpected URL: ${href}`);
     });
-    vi.stubGlobal("fetch", fetch);
+    const defaultFetch = custom ? vi.fn<typeof globalThis.fetch>() : fetch;
+    vi.stubGlobal("fetch", defaultFetch);
     const plugin = satteriLinkCard({
+      fetch: custom ? fetch : undefined,
       metadataCache: false,
       imageCache: { store: imageStore },
     });
@@ -240,6 +282,46 @@ describe("satteriLinkCard", () => {
         ([input]) => inputUrl(input) === "https://cdn.example.com/favicon.ico",
       ),
     ).toHaveLength(1);
+    if (custom) {
+      expect(defaultFetch).not.toHaveBeenCalled();
+    }
+  });
+
+  test("preserves remote image URLs when a custom fetch rejects image downloads", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "satteri-link-card-images-"));
+    temporaryDirectories.push(directory);
+    const defaultFetch = vi.fn<typeof globalThis.fetch>();
+    vi.stubGlobal("fetch", defaultFetch);
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(async (input) => {
+      if (inputUrl(input) === "https://example.com/article") {
+        return htmlResponse(
+          '<title>Title</title><meta property="og:image" content="https://cdn.example.com/card.png"><link rel="icon" href="https://cdn.example.com/favicon.ico">',
+        );
+      }
+      throw new Error("Rejected");
+    });
+
+    const result = await markdownToHtml("https://example.com/article", {
+      hastPlugins: [
+        satteriLinkCard({
+          fetch,
+          metadataCache: false,
+          imageCache: {
+            store: createFileSystemImageCacheStore({ directory, publicPath: "/assets/cards" }),
+          },
+        }),
+      ],
+    });
+
+    expect(fetch.mock.calls.map(([input]) => inputUrl(input))).toEqual([
+      "https://example.com/article",
+      "https://cdn.example.com/card.png",
+      "https://cdn.example.com/favicon.ico",
+    ]);
+    expect(result.html).toContain('src="https://cdn.example.com/card.png"');
+    expect(result.html).toContain('src="https://cdn.example.com/favicon.ico"');
+    expect(result.html).not.toContain("/assets/cards/");
+    expect(defaultFetch).not.toHaveBeenCalled();
   });
 
   test("exposes one image size limit for cache downloads", async () => {

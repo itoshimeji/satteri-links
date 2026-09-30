@@ -99,18 +99,40 @@ satteriLinkMention({
 });
 ```
 
-| Option                     | Default                       | Description                                                         |
-| -------------------------- | ----------------------------- | ------------------------------------------------------------------- |
-| `mention.favicon`          | `true`                        | Shows the resolved favicon when available.                          |
-| `mention.siteName`         | `true`                        | Shows `og:site_name` or `application-name` when available.          |
-| `mention.title`            | `true`                        | Shows the resolved page title.                                      |
-| `mention.order`            | favicon, siteName, title      | Sets the order of enabled parts. Duplicate values throw an error.   |
-| `metadataCache`            | `{}`                          | Metadata cache settings, or `false` to disable the cache.           |
-| `metadataCache.directory`  | `.cache/satteri-link-mention` | Directory for cached metadata files.                                |
-| `metadataCache.maxAge`     | 30 days                       | Maximum age in milliseconds, or `false` to never expire.            |
-| `imageCache`               | `false`                       | Enables the filesystem image cache or accepts custom store options. |
-| `imageCache.maxImageBytes` | 5 MiB                         | Maximum download size for one cached favicon.                       |
-| `openInNewTab`             | `true`                        | Adds `target="_blank"` and `rel="noopener noreferrer"`.             |
+| Option                     | Default                       | Description                                                           |
+| -------------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| `mention.favicon`          | `true`                        | Shows the resolved favicon when available.                            |
+| `mention.siteName`         | `true`                        | Shows `og:site_name` or `application-name` when available.            |
+| `mention.title`            | `true`                        | Shows the resolved page title.                                        |
+| `mention.order`            | favicon, siteName, title      | Sets the order of enabled parts. Duplicate values throw an error.     |
+| `fetch`                    | `globalThis.fetch`            | Fetch API-compatible function for metadata and image-cache downloads. |
+| `metadataCache`            | `{}`                          | Metadata cache settings, or `false` to disable the cache.             |
+| `metadataCache.directory`  | `.cache/satteri-link-mention` | Directory for cached metadata files.                                  |
+| `metadataCache.maxAge`     | 30 days                       | Maximum age in milliseconds, or `false` to never expire.              |
+| `imageCache`               | `false`                       | Enables the filesystem image cache or accepts custom store options.   |
+| `imageCache.maxImageBytes` | 5 MiB                         | Maximum download size for one cached favicon.                         |
+| `openInNewTab`             | `true`                        | Adds `target="_blank"` and `rel="noopener noreferrer"`.               |
+
+## 🌐 Custom fetch
+
+Pass a Fetch API-compatible function with the same signature as
+`globalThis.fetch`:
+
+```ts
+const customFetch: typeof globalThis.fetch = (input, init) => globalThis.fetch(input, init);
+
+satteriLinkMention({
+  fetch: customFetch,
+  imageCache: true,
+});
+```
+
+This example delegates to the default fetch. The same function handles metadata
+requests and, when `imageCache` is enabled, favicon downloads.
+Cache hits do not make requests. Without this option, the plugin uses
+`globalThis.fetch`.
+
+## 💾 Image cache
 
 `imageCache: true` writes favicons to `public/satteri-link-mention/` and
 renders them from `/satteri-link-mention/`.
@@ -135,8 +157,16 @@ Custom backends can implement the exported `ImageCacheStore` interface.
 ## 🔒 Security and limitations
 
 Metadata and image requests run in the build environment. Use the plugin only
-with trusted Markdown. Requests to private or local network addresses are not
-currently blocked.
+with trusted Markdown. The default fetch does not block requests to private or
+local network addresses. Supplying `fetch` does not itself enable SSRF protection;
+URL, redirect, and network access restrictions are the responsibility of your
+fetch implementation.
+
+Rejecting a metadata request leaves the original link unchanged. Rejecting an
+image-cache request falls back to the remote asset URL, so refusing a download
+does not guarantee that external image URLs are removed from the generated HTML.
+When `imageCache` is disabled, image URLs are rendered without fetching them in
+the build environment.
 
 Missing metadata parts are omitted. If metadata cannot be resolved, the empty
 link is left unchanged.
