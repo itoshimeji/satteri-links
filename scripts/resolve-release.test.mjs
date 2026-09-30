@@ -188,6 +188,9 @@ void test("ancestry uses Git commit history, not a trusted-looking branch name o
   try {
     git("init", "-b", "main");
     mkdirSync(join(directory, "packages"));
+    mkdirSync(join(directory, "scripts"));
+    mkdirSync(join(directory, ".changeset"));
+    mkdirSync(join(directory, ".github/actions/setup-release-pnpm"), { recursive: true });
     writeFileSync(join(directory, "packages/source"), "approved package source");
     for (const path of [
       "pnpm-lock.yaml",
@@ -195,6 +198,10 @@ void test("ancestry uses Git commit history, not a trusted-looking branch name o
       "vite.config.ts",
       "tsconfig.base.json",
       "LICENSE",
+      ".changeset/config.json",
+      ".github/actions/setup-release-pnpm/action.yml",
+      "scripts/verify-release-pack.mjs",
+      "scripts/release-pnpm.mjs",
     ])
       writeFileSync(join(directory, path), "unchanged input");
     writeFileSync(
@@ -203,6 +210,7 @@ void test("ancestry uses Git commit history, not a trusted-looking branch name o
         devDependencies: { "vite-plus": "0.2.7" },
         devEngines: { packageManager: { name: "pnpm", version: "11.18.0" } },
         engines: { node: ">=22" },
+        scripts: { prepare: "vp config", "release:pack": "node scripts/verify-release-pack.mjs" },
       }),
     );
     writeFileSync(join(directory, "version"), "release");
@@ -259,6 +267,36 @@ void test("ancestry uses Git commit history, not a trusted-looking branch name o
       "true",
       "Infrastructure-only recovery preserves provenance package inputs",
     );
+    const commitFixture = (message) => {
+      git("add", ".");
+      git(
+        "-c",
+        "user.name=Release Test",
+        "-c",
+        "user.email=release-test@example.invalid",
+        "commit",
+        "-m",
+        message,
+      );
+      return git("rev-parse", "HEAD");
+    };
+    writeFileSync(join(directory, "scripts/verify-release-pack.mjs"), "changed pack executable");
+    assert.equal(sourceCheck(commitFixture("change pack tooling")), "false");
+    git("reset", "--hard", main);
+    const manifest = JSON.parse(readFileSync(join(directory, "package.json"), "utf8"));
+    manifest.scripts.prepare = "node scripts/other-prepare.mjs";
+    writeFileSync(join(directory, "package.json"), JSON.stringify(manifest));
+    assert.equal(sourceCheck(commitFixture("change prepare command")), "false");
+    git("reset", "--hard", main);
+    writeFileSync(join(directory, "scripts/new-build.mjs"), "new executable");
+    assert.equal(sourceCheck(commitFixture("add executable")), "false");
+    git("reset", "--hard", main);
+    writeFileSync(join(directory, "scripts/resolve-release.mjs"), "trusted main resolver");
+    writeFileSync(join(directory, "scripts/resolve-release.test.mjs"), "new regression test");
+    manifest.scripts.prepare = "vp config";
+    manifest.scripts["release:check"] = "node --test scripts/resolve-release.test.mjs";
+    writeFileSync(join(directory, "package.json"), JSON.stringify(manifest));
+    assert.equal(sourceCheck(commitFixture("add trusted resolver and regression tests")), "true");
     writeFileSync(join(directory, "packages/source"), "new unreleased package source");
     git("add", ".");
     git(

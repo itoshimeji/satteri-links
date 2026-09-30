@@ -118,15 +118,42 @@ export function packageSourcesMatch(releaseSha, workflowSha) {
     "vite.config.ts",
     "tsconfig.base.json",
     "LICENSE",
+    ".changeset/config.json",
+    ".github/actions/setup-release-pnpm/action.yml",
   ]) {
     if (git("rev-parse", `${releaseSha}:${path}`) !== git("rev-parse", `${workflowSha}:${path}`))
       return false;
   }
   const buildConfig = (sha) => {
-    const { devDependencies, devEngines, engines } = JSON.parse(git("show", `${sha}:package.json`));
-    return { devDependencies, devEngines, engines };
+    const { devDependencies, devEngines, engines, scripts } = JSON.parse(
+      git("show", `${sha}:package.json`),
+    );
+    // release:check only runs regression tests. It may gain tests in a workflow
+    // repair, but all executable build/pack/install commands must stay identical.
+    const { "release:check": _releaseCheck, ...executableScripts } = scripts ?? {};
+    return { devDependencies, devEngines, engines, scripts: executableScripts };
   };
-  return JSON.stringify(buildConfig(releaseSha)) === JSON.stringify(buildConfig(workflowSha));
+  if (JSON.stringify(buildConfig(releaseSha)) !== JSON.stringify(buildConfig(workflowSha)))
+    return false;
+  const executableFiles = (sha) =>
+    git("ls-tree", "-r", "--name-only", sha, "scripts")
+      .split("\n")
+      .filter(
+        (path) =>
+          path &&
+          !path.endsWith(".test.mjs") &&
+          !path.startsWith("scripts/fixtures/") &&
+          path !== "scripts/resolve-release.mjs",
+      );
+  // The resolver comes from trusted main and tests never generate the package.
+  // Compare every other script, including newly added executable files.
+  const releaseFiles = executableFiles(releaseSha);
+  const workflowFiles = executableFiles(workflowSha);
+  if (JSON.stringify(releaseFiles) !== JSON.stringify(workflowFiles)) return false;
+  return releaseFiles.every(
+    (path) =>
+      git("rev-parse", `${releaseSha}:${path}`) === git("rev-parse", `${workflowSha}:${path}`),
+  );
 }
 
 export function isAncestor(ancestor, descendant) {

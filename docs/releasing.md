@@ -158,7 +158,10 @@ Live npm OIDC acceptance and provenance still require a real publication run.
 pnpm's provenance records the actual workflow `GITHUB_SHA`, rather than changing
 it to the checkout SHA. Recovery therefore requires identical package trees,
 lock/workspace/build configuration, license, and pinned tool dependencies at the
-release and main workflow revisions. Infrastructure scripts may differ. A later
+release and main workflow revisions. Root install/build/pack commands, executable
+release scripts, Changesets configuration, and the shared pnpm setup must also
+match. Only the trusted main resolver, regression tests/fixtures, and the
+`release:check` test command may differ. A later
 main commit with changed package inputs is rejected; use the original corrected
 main-based run's **Re-run all jobs** instead. No GitHub identity variables are
 overridden to manufacture an older OIDC/provenance context.
