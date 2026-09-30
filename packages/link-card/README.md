@@ -211,8 +211,7 @@ does not guarantee that external image URLs are removed from the generated HTML.
 When `imageCache` is disabled, image URLs are rendered without fetching them in
 the build environment.
 
-The plugin does not provide offline builds, cache pruning, or concurrency limits
-across different URLs.
+The plugin does not provide offline builds or cache pruning.
 
 ## 🔁 Relationship to `remark-link-card-plus`
 
