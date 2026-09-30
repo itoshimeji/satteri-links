@@ -14,7 +14,7 @@ use it internally.
 ## ✨ Features
 
 - Resolves titles, site names, descriptions, Open Graph images, and favicons
-- Applies request timeouts and bounded HTML metadata scans
+- Applies request concurrency limits, timeouts, and bounded HTML metadata scans
 - Supports filesystem metadata and image caches
 - Accepts custom `fetch` implementations and image-cache stores
 - Returns predictable fallbacks when metadata or image requests fail
@@ -64,10 +64,62 @@ const imagePath = await resolveImage("https://example.com/image.png");
 
 Image-cache failures return the original remote URL.
 
+## 🚦 Request concurrency
+
+`createMetadataResolver` and `createImageResolver` each create an independent
+queue, with defaults of **64 active HTTP requests in total** and **4 per host**.
+Set `maxConcurrentRequests` and `maxConcurrentRequestsPerHost` to positive safe
+integers to change them; invalid limits throw `RangeError` at factory creation.
+
+To share one budget between metadata, images and favicons, use the optional
+combined factory:
+
+```ts
+import {
+  createFileSystemImageCacheStore,
+  createLinkPreviewResolvers,
+} from "@itoshinji/link-preview";
+
+const { resolveMetadata, resolveImage } = createLinkPreviewResolvers({
+  maxConcurrentRequests: 64,
+  maxConcurrentRequestsPerHost: 4,
+  cache: { directory: ".cache/link-preview" },
+  image: {
+    store: createFileSystemImageCacheStore({
+      directory: "public/link-preview",
+      publicPath: "/link-preview",
+    }),
+  },
+});
+```
+
+The combined factory accepts the metadata resolver options and an optional
+`image` configuration (`store`, `maxBytes`, `timeoutMs`). Its top-level `fetch`
+is used for both resolvers. Without `image`, `resolveImage` is `undefined`.
+The card and mention plugins use this factory internally; callers only need
+to set the limits on their plugin options.
+
+Cache lookup and in-flight URL deduplication happen before queuing. Queue time
+is excluded from the fetch timeout. Slots are held through required body reads
+or cancellation, and released after errors. A saturated host is skipped so
+other hosts can use spare total capacity. Cache storage writes do not hold a
+network slot.
+
+A host is the initial URL's normalized `hostname`, regardless of scheme or
+port. Subdomains have separate budgets. Redirects retain the initial hostname's
+slot; the per-host limit does not guarantee a limit on the redirect destination
+hostname, and fetch redirect behavior is unchanged. Custom fetch implementations use
+the queue, but extra requests they initiate internally are not tracked.
+
+Reuse the same resolvers across documents to share their queue. Separate
+factory calls and processes are independent. These limits control simultaneous
+requests, not request frequency or requests per second.
+
 ## ⚙️ Public API
 
 - `createMetadataResolver(options?)`
 - `createImageResolver(options)`
+- `createLinkPreviewResolvers(options?)`
 - `createFileSystemImageCacheStore(options)`
 - Resolver, metadata, image, and cache-store types used by those factories
 

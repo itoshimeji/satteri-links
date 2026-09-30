@@ -28,18 +28,26 @@ async function readResponseBytes(response: Response, maxBytes: number): Promise<
   const chunks: Uint8Array[] = [];
   let bytesRead = 0;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
+  let reachedEof = false;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        reachedEof = true;
+        break;
+      }
 
-    bytesRead += value.byteLength;
-    if (bytesRead > maxBytes) {
-      await reader.cancel();
-      throw new Error("Link preview image is too large");
+      bytesRead += value.byteLength;
+      if (bytesRead > maxBytes) {
+        throw new Error("Link preview image is too large");
+      }
+      chunks.push(value);
     }
-    chunks.push(value);
+  } finally {
+    if (!reachedEof) {
+      await reader.cancel().catch(() => undefined);
+    }
+    reader.releaseLock();
   }
 
   const bytes = new Uint8Array(bytesRead);
@@ -61,12 +69,13 @@ export async function fetchImage(url: URL, options: ImageFetchOptions): Promise<
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
 
+  let response: Response | undefined;
   try {
     if (url.protocol !== "http:" && url.protocol !== "https:") {
       throw new Error("Link preview image URL must use HTTP or HTTPS");
     }
 
-    const response = await options.fetch(url, {
+    response = await options.fetch(url, {
       headers: { accept: "image/*", "user-agent": "itoshinji-link-preview" },
       signal: controller.signal,
     });
@@ -86,6 +95,9 @@ export async function fetchImage(url: URL, options: ImageFetchOptions): Promise<
       contentType: responseContentType,
     };
   } finally {
+    if (response?.body && !response.body.locked) {
+      await response.body.cancel().catch(() => undefined);
+    }
     clearTimeout(timeout);
   }
 }

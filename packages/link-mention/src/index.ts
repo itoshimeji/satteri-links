@@ -3,6 +3,7 @@ export { createFileSystemImageCacheStore } from "./image-store.js";
 export type { FileSystemImageCacheOptions } from "./image-store.js";
 export type {
   CachedImage,
+  FetchConcurrencyOptions,
   ImageCacheStore,
   ImageInput,
   LinkMetadata,

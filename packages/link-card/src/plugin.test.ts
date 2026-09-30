@@ -49,6 +49,41 @@ async function render(
 }
 
 describe("satteriLinkCard", () => {
+  test("shares request limits across documents and keeps plugin instances independent", async () => {
+    const waiting = new Map<string, (response: Response) => void>();
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      (input) =>
+        new Promise<Response>((resolve) => {
+          waiting.set(inputUrl(input), resolve);
+        }),
+    );
+    const options = {
+      metadataCache: false as const,
+      fetch,
+      maxConcurrentRequests: 1,
+      maxConcurrentRequestsPerHost: 1,
+      thumbnail: false as const,
+      favicon: false as const,
+    };
+    const shared = satteriLinkCard(options);
+    const independent = satteriLinkCard(options);
+    const renderWith = (url: string, plugin: ReturnType<typeof satteriLinkCard>) =>
+      markdownToHtml(url, { hastPlugins: [plugin] });
+    const a = renderWith("https://example.com/a", shared);
+    const b = renderWith("https://example.com/b", shared);
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    const c = renderWith("https://example.com/c", independent);
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    expect(waiting.has("https://example.com/b")).toBe(false);
+    waiting.get("https://example.com/a")!(htmlResponse("<title>A</title>"));
+    expect((await a).html).toContain("A");
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    waiting.get("https://example.com/b")!(htmlResponse("<title>B</title>"));
+    waiting.get("https://example.com/c")!(htmlResponse("<title>C</title>"));
+    expect((await b).html).toContain("B");
+    expect((await c).html).toContain("C");
+  });
+
   test("uses a custom fetch for metadata without the image cache", async () => {
     const defaultFetch = vi.fn<typeof globalThis.fetch>();
     vi.stubGlobal("fetch", defaultFetch);

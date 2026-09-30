@@ -297,8 +297,9 @@ export async function fetchMetadata(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs);
 
+  let response: Response | undefined;
   try {
-    const response = await options.fetch(url, {
+    response = await options.fetch(url, {
       headers: {
         accept: "text/html,application/xhtml+xml",
         "user-agent": "itoshinji-link-preview",
@@ -318,6 +319,9 @@ export async function fetchMetadata(
     const responseUrl = response.url ? new URL(response.url) : url;
     return { url: url.href, ...(await readMetadata(response, responseUrl, options.maxBytes)) };
   } finally {
+    if (response?.body && !response.body.locked) {
+      await response.body.cancel().catch(() => undefined);
+    }
     clearTimeout(timeout);
   }
 }

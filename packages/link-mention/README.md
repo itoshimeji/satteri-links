@@ -99,19 +99,52 @@ satteriLinkMention({
 });
 ```
 
-| Option                     | Default                       | Description                                                           |
-| -------------------------- | ----------------------------- | --------------------------------------------------------------------- |
-| `mention.favicon`          | `true`                        | Shows the resolved favicon when available.                            |
-| `mention.siteName`         | `true`                        | Shows `og:site_name` or `application-name` when available.            |
-| `mention.title`            | `true`                        | Shows the resolved page title.                                        |
-| `mention.order`            | favicon, siteName, title      | Sets the order of enabled parts. Duplicate values throw an error.     |
-| `fetch`                    | `globalThis.fetch`            | Fetch API-compatible function for metadata and image-cache downloads. |
-| `metadataCache`            | `{}`                          | Metadata cache settings, or `false` to disable the cache.             |
-| `metadataCache.directory`  | `.cache/satteri-link-mention` | Directory for cached metadata files.                                  |
-| `metadataCache.maxAge`     | 30 days                       | Maximum age in milliseconds, or `false` to never expire.              |
-| `imageCache`               | `false`                       | Enables the filesystem image cache or accepts custom store options.   |
-| `imageCache.maxImageBytes` | 5 MiB                         | Maximum download size for one cached favicon.                         |
-| `openInNewTab`             | `true`                        | Adds `target="_blank"` and `rel="noopener noreferrer"`.               |
+| Option                         | Default                       | Description                                                           |
+| ------------------------------ | ----------------------------- | --------------------------------------------------------------------- |
+| `mention.favicon`              | `true`                        | Shows the resolved favicon when available.                            |
+| `mention.siteName`             | `true`                        | Shows `og:site_name` or `application-name` when available.            |
+| `mention.title`                | `true`                        | Shows the resolved page title.                                        |
+| `mention.order`                | favicon, siteName, title      | Sets the order of enabled parts. Duplicate values throw an error.     |
+| `fetch`                        | `globalThis.fetch`            | Fetch API-compatible function for metadata and image-cache downloads. |
+| `maxConcurrentRequests`        | `64`                          | Maximum active HTTP requests per plugin instance.                     |
+| `maxConcurrentRequestsPerHost` | `4`                           | Maximum active HTTP requests per initial URL hostname.                |
+| `metadataCache`                | `{}`                          | Metadata cache settings, or `false` to disable the cache.             |
+| `metadataCache.directory`      | `.cache/satteri-link-mention` | Directory for cached metadata files.                                  |
+| `metadataCache.maxAge`         | 30 days                       | Maximum age in milliseconds, or `false` to never expire.              |
+| `imageCache`                   | `false`                       | Enables the filesystem image cache or accepts custom store options.   |
+| `imageCache.maxImageBytes`     | 5 MiB                         | Maximum download size for one cached favicon.                         |
+| `openInNewTab`                 | `true`                        | Adds `target="_blank"` and `rel="noopener noreferrer"`.               |
+
+## 🚦 Request concurrency
+
+Each plugin instance limits active HTTP requests to **64 in total** and **4 per
+host** by default. Adjust these positive safe integer limits directly:
+
+```ts
+satteriLinkMention({
+  maxConcurrentRequests: 32,
+  maxConcurrentRequestsPerHost: 2,
+});
+```
+
+Metadata HTML and image-cache downloads (including favicons) share this budget.
+Cache hits and duplicate in-flight URLs are resolved before entering the queue.
+A request holds its slot until the required body has been read or cancelled;
+waiting in the queue does not consume the communication timeout. A saturated
+host does not block queued requests to other hosts when total capacity remains.
+
+The same instance shares its budget across all documents that use it. Separate
+instances, including card and mention instances, and separate processes have
+independent budgets. This controls simultaneous requests, not requests per second
+or rate limiting.
+
+A host is the initial request URL's normalized `hostname`: scheme and port are
+ignored, so `http://example.com:8080` and `https://EXAMPLE.com` share a host.
+Subdomains are separate hosts. Fetch follows redirects as usual; redirected
+requests remain charged to the initial hostname, so the per-host limit does not
+guarantee a limit on the redirect destination hostname. Custom fetch implementations
+use the same queue, but any extra requests they make internally are their own
+responsibility.
 
 ## 🌐 Custom fetch
 
