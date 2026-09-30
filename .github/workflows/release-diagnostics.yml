@@ -1,0 +1,44 @@
+name: Release publication diagnostics
+
+# Read-only PR diagnostics, never a publication or npm deployment.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/release-diagnostics.yml
+      - scripts/release-publish-experiment.mjs
+
+permissions: {}
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      # Match the failed-to-verify publish job's tooling setup, including no cache.
+      - uses: voidzero-dev/setup-vp@v1.17.0
+        with:
+          node-version: 24
+          cache: false
+          run-install: |
+            args: ['--frozen-lockfile']
+      - uses: ./.github/actions/setup-release-pnpm
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          artifact-ids: 11098870098
+          run-id: 36720107958
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/recovery-publish-artifact
+          merge-multiple: true
+      - name: Verify the original artifact and run localhost-only experiments
+        run: |
+          node scripts/verify-release-pack.mjs "$ARTIFACT_DIR"
+          node scripts/release-publish-experiment.mjs "$ARTIFACT_DIR"
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/recovery-publish-artifact
+          PNPM_CONFIG_PROVENANCE: "true"
