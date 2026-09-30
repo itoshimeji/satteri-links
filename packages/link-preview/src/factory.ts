@@ -1,8 +1,10 @@
 import { MetadataCache } from "./cache.js";
+import { FetchQueue } from "./concurrency.js";
 import { fetchImage } from "./image-fetch.js";
 import { fetchMetadata } from "./metadata.js";
 import type {
   CreateImageResolverOptions,
+  CreateLinkPreviewResolversOptions,
   CreateMetadataResolverOptions,
   LinkMetadata,
 } from "./types.js";
@@ -15,6 +17,13 @@ export type MetadataResolver = (url: URL) => Promise<LinkMetadata | undefined>;
 
 export function createMetadataResolver(
   options: CreateMetadataResolverOptions = {},
+): MetadataResolver {
+  return metadataResolver(options, new FetchQueue(options));
+}
+
+function metadataResolver(
+  options: CreateMetadataResolverOptions,
+  queue: FetchQueue,
 ): MetadataResolver {
   const fetch = options.fetch ?? globalThis.fetch;
   const maxHtmlBytes = options.maxHtmlBytes ?? DEFAULT_MAX_HTML_BYTES;
@@ -36,7 +45,9 @@ export function createMetadataResolver(
       }
 
       try {
-        const metadata = await fetchMetadata(url, { fetch, maxBytes: maxHtmlBytes, timeoutMs });
+        const metadata = await queue.run(url, () =>
+          fetchMetadata(url, { fetch, maxBytes: maxHtmlBytes, timeoutMs }),
+        );
         await cache?.set(key, metadata).catch(() => undefined);
         return metadata;
       } catch {
@@ -56,6 +67,10 @@ export function createMetadataResolver(
 export type ImageResolver = (source: string) => Promise<string | undefined>;
 
 export function createImageResolver(options: CreateImageResolverOptions): ImageResolver {
+  return imageResolver(options, new FetchQueue(options));
+}
+
+function imageResolver(options: CreateImageResolverOptions, queue: FetchQueue): ImageResolver {
   const fetch = options.fetch ?? globalThis.fetch;
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_IMAGE_BYTES;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
@@ -85,7 +100,9 @@ export function createImageResolver(options: CreateImageResolverOptions): ImageR
           return cached.src;
         }
 
-        const image = await fetchImage(sourceUrl, { fetch, maxBytes, timeoutMs });
+        const image = await queue.run(sourceUrl, () =>
+          fetchImage(sourceUrl, { fetch, maxBytes, timeoutMs }),
+        );
         return (await options.store.put(sourceUrl, image)).src;
       } catch {
         return sourceUrl.href;
@@ -98,5 +115,19 @@ export function createImageResolver(options: CreateImageResolverOptions): ImageR
     } finally {
       inflight.delete(key);
     }
+  };
+}
+
+/** Creates metadata and optional image resolvers with a shared request budget. */
+export function createLinkPreviewResolvers(options: CreateLinkPreviewResolversOptions = {}): {
+  resolveMetadata: MetadataResolver;
+  resolveImage: ImageResolver | undefined;
+} {
+  const queue = new FetchQueue(options);
+  return {
+    resolveMetadata: metadataResolver(options, queue),
+    resolveImage: options.image
+      ? imageResolver({ ...options.image, fetch: options.fetch }, queue)
+      : undefined,
   };
 }

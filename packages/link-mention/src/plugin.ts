@@ -1,4 +1,4 @@
-import { createImageResolver, createMetadataResolver } from "@itoshinji/link-preview";
+import { createLinkPreviewResolvers } from "@itoshinji/link-preview";
 import { defineHastPlugin } from "satteri";
 import { findEmptyUrl } from "./candidate.js";
 import { createFileSystemImageCacheStore } from "./image-store.js";
@@ -43,18 +43,19 @@ function resolveOptions(options: SatteriLinkMentionOptions): ResolvedSatteriLink
 
 export function satteriLinkMention(options: SatteriLinkMentionOptions = {}) {
   const resolvedOptions = resolveOptions(options);
-  const resolveMetadata = createMetadataResolver({
+  const { resolveMetadata, resolveImage } = createLinkPreviewResolvers({
     cache: resolvedOptions.metadataCache,
     fetch: options.fetch,
+    maxConcurrentRequests: options.maxConcurrentRequests,
+    maxConcurrentRequestsPerHost: options.maxConcurrentRequestsPerHost,
+    image:
+      resolvedOptions.imageCache === false
+        ? undefined
+        : {
+            maxBytes: resolvedOptions.imageCache.maxImageBytes,
+            store: resolvedOptions.imageCache.store,
+          },
   });
-  const resolveImage =
-    resolvedOptions.imageCache === false
-      ? undefined
-      : createImageResolver({
-          fetch: options.fetch,
-          maxBytes: resolvedOptions.imageCache.maxImageBytes,
-          store: resolvedOptions.imageCache.store,
-        });
 
   async function resolveFavicon(metadata: LinkMetadata): Promise<LinkMetadata> {
     if (!resolvedOptions.mention.favicon || !metadata.favicon) {

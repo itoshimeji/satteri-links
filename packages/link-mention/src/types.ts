@@ -1,5 +1,6 @@
 import type {
   FileSystemMetadataCacheOptions,
+  FetchConcurrencyOptions,
   ImageCacheStore,
   LinkMetadata,
 } from "@itoshinji/link-preview";
@@ -25,7 +26,7 @@ export type MentionOptions = {
   order?: MentionPart[];
 };
 
-export type SatteriLinkMentionOptions = {
+export type SatteriLinkMentionOptions = FetchConcurrencyOptions & {
   /** Fetch implementation for metadata and image-cache downloads. Defaults to globalThis.fetch. */
   fetch?: typeof globalThis.fetch;
   metadataCache?: MetadataCacheOptions | false;

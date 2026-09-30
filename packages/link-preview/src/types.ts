@@ -12,12 +12,19 @@ export type FileSystemMetadataCacheOptions = {
   maxAge?: number | false;
 };
 
-export type CreateMetadataResolverOptions = {
+export type FetchConcurrencyOptions = {
+  /** Maximum active HTTP requests, including response body reads. Defaults to 64. */
+  maxConcurrentRequests?: number;
+  /** Maximum active requests per initial URL hostname, regardless of port or scheme. Defaults to 4. */
+  maxConcurrentRequestsPerHost?: number;
+};
+
+export type CreateMetadataResolverOptions = FetchConcurrencyOptions & {
   cache?: false | FileSystemMetadataCacheOptions;
   fetch?: typeof globalThis.fetch;
   /** Maximum number of HTML response bytes inspected for metadata. */
   maxHtmlBytes?: number;
-  /** Deadline for fetching and scanning metadata, in milliseconds. */
+  /** Deadline for fetching and scanning metadata, excluding queue time, in milliseconds. */
   timeoutMs?: number;
 };
 
@@ -35,11 +42,17 @@ export interface ImageCacheStore {
   put(sourceUrl: URL, image: ImageInput): Promise<CachedImage>;
 }
 
-export type CreateImageResolverOptions = {
+export type CreateImageResolverOptions = FetchConcurrencyOptions & {
   store: ImageCacheStore;
   fetch?: typeof globalThis.fetch;
   maxBytes?: number;
+  /** Deadline for fetching and reading an image, excluding queue time, in milliseconds. */
   timeoutMs?: number;
+};
+
+export type CreateLinkPreviewResolversOptions = CreateMetadataResolverOptions & {
+  /** Enables image resolution using the same fetch implementation and queue as metadata. */
+  image?: Omit<CreateImageResolverOptions, keyof FetchConcurrencyOptions | "fetch">;
 };
 
 export type FileSystemImageCacheStoreOptions = {
