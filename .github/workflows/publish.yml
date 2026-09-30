@@ -37,6 +37,7 @@ jobs:
           cache: false
           run-install: |
             args: ['--frozen-lockfile']
+      - uses: ./.github/actions/setup-release-pnpm
       - run: vp run check:workspace
       - run: vp run test:workspace
       - run: vp run release:check
@@ -83,6 +84,7 @@ jobs:
           cache: false
           run-install: |
             args: ['--frozen-lockfile']
+      - uses: ./.github/actions/setup-release-pnpm
       - uses: changesets/action/publish@v2.1.2
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-artifact }}
