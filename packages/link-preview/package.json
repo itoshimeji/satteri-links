@@ -1,6 +1,6 @@
 {
   "name": "@itoshinji/link-preview",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Build-time metadata and image resolution for link previews.",
   "keywords": [
     "link-preview",
