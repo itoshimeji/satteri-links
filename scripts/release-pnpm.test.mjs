@@ -137,15 +137,28 @@ void test("the release probe rejects a pnpm executable with the wrong version", 
   }
 });
 
-void test("real Changesets publish-plan invokes pnpm against a fixture registry without publishing", async () => {
+void test("real Changesets publish-plan skips already published versions on partial and complete retries", async () => {
   const directory = mkdtempSync(join(tmpdir(), "satteri-pnpm-plan-"));
   const requests = new Set();
+  const published = new Set();
   const registry = createServer((request, response) => {
-    requests.add(
-      decodeURIComponent(new URL(request.url, "http://localhost").pathname)
-        .slice(1)
-        .replace(/@\d.*$/, ""),
-    );
+    assert.equal(request.method, "GET", "The regression must never publish");
+    const name = decodeURIComponent(new URL(request.url, "http://localhost").pathname)
+      .slice(1)
+      .replace(/@\d.*$/, "");
+    requests.add(name);
+    if (published.has(name)) {
+      const { manifest } = packages.get(name);
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(
+        JSON.stringify({
+          name,
+          "dist-tags": { latest: manifest.version },
+          versions: { [manifest.version]: { name, version: manifest.version } },
+        }),
+      );
+      return;
+    }
     // An empty registry makes all four packages publish candidates. This serves
     // metadata only; publication, credentials, and the live npm registry are unused.
     response.writeHead(404, { "content-type": "application/json" });
@@ -182,6 +195,25 @@ void test("real Changesets publish-plan invokes pnpm against a fixture registry 
         .map(([name, { manifest }]) => [name, manifest.version])
         .sort(([a], [b]) => a.localeCompare(b)),
     );
+    const retryPlan = async () => {
+      await run(process.execPath, [cli, "publish-plan", "--output", output], {
+        cwd: directory,
+        timeout: 30_000,
+      });
+      return JSON.parse(readFileSync(output, "utf8"))
+        .plan.flat()
+        .filter((entry) => entry.kind === "publish")
+        .map((entry) => entry.name)
+        .sort((a, b) => a.localeCompare(b));
+    };
+    // Model preview successfully published before card/mention failed. Heading
+    // is already published and must remain outside the recovery plan as well.
+    published.add("@itoshinji/link-preview");
+    published.add("satteri-heading-link");
+    assert.deepEqual(await retryPlan(), ["satteri-link-card", "satteri-link-mention"]);
+    published.add("satteri-link-card");
+    published.add("satteri-link-mention");
+    assert.deepEqual(await retryPlan(), []);
   } finally {
     registry.closeAllConnections();
     await new Promise((resolve) => registry.close(resolve));

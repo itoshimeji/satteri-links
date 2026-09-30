@@ -36,10 +36,15 @@ these automatic entries in the release PR. Heading remains independent.
    are wanted later, a separately authorized repository-scoped GitHub App is an
    alternative; no such credential is part of this setup.
 4. **A maintainer merging the release PR into `main` is the publish decision.**
-   The **Publish** workflow handles only a merged, same-repository PR whose head
-   is exactly `changeset-release/main`. It checks out that event's merge commit,
-   not whichever commit happens to be current on `main`. Ordinary feature PRs,
-   branch pushes, and merging the infrastructure setup PR cannot publish.
+   The **Publish** workflow runs on a push to `main`. Its read-only resolver uses
+   GitHub's commit-to-PR API to require that the pushed commit is the merge of a
+   same-repository, bot-generated `changeset-release/main` PR into main by a
+   human. It permits only version/changelog, consumed changeset, and lockfile
+   changes. Ordinary main pushes and feature PRs cannot reach pack or publish.
+   Both package jobs check out that immutable authorized merge commit. The
+   resolver itself comes from the trusted workflow revision on main. Deleted
+   source branches do not prevent recovery: authorization uses saved PR metadata
+   and verifies that the release commit is in main's history.
 5. The pack job runs workspace lint/type/format checks, tests, release safety
    tests, and checks tarballs for all four packages. Changesets computes the
    registry-aware publish plan and packs only missing versions, in dependency
@@ -134,6 +139,30 @@ the lockfile.
 Node 24 is used for release jobs. No authentication is needed for installing the
 public dependencies.
 
+The actual deployment ref is `refs/heads/main` for both the automatic push and
+the recovery dispatch; selecting another checkout commit does not change it.
+GitHub evaluates environment branch rules against the workflow's `GITHUB_REF`,
+so the npm environment must stay restricted to main. PR event refs such as
+`refs/pull/6/merge` are deliberately unsupported. No `pull_request_target`
+trigger or broader environment rule is required.
+
+The publish job retains `environment: npm`; its default OIDC subject therefore
+uses the environment context rather than a PR subject. The `ref` and
+`workflow_ref` claims identify main execution, while checked-out package source
+can be an older authorized merge commit during recovery. Repository identity,
+workflow filename `publish.yml`, and environment `npm` remain unchanged, so the
+trusted publisher configuration does not need a new entry. Subject formatting
+can include immutable owner/repository IDs or a repository customization; this
+workflow does not modify OIDC settings or assume a literal subject string.
+Live npm OIDC acceptance and provenance still require a real publication run.
+pnpm's provenance records the actual workflow `GITHUB_SHA`, rather than changing
+it to the checkout SHA. Recovery therefore requires identical package trees,
+lock/workspace/build configuration, license, and pinned tool dependencies at the
+release and main workflow revisions. Infrastructure scripts may differ. A later
+main commit with changed package inputs is rejected; use the original corrected
+main-based run's **Re-run all jobs** instead. No GitHub identity variables are
+overridden to manufacture an older OIDC/provenance context.
+
 If a package does not yet exist or your account lacks its settings, handle its
 initial npm package ownership/bootstrap manually before the first automated
 release. Do not assume configuring one sibling grants permission for another.
@@ -155,12 +184,35 @@ supported; no token bypass is required.
   `vp install` does not prove that Changesets child processes can find pnpm.
 - If checks fail, fix the cause in a normal PR and update the release PR. Run CI
   on its new head before merging.
+- If GitHub rejects `refs/pull/<number>/merge` at the environment gate, that was
+  the old PR-event trigger. Keep the main-only environment policy. Merge the
+  main-execution workflow fix, then use its recovery dispatch; rerunning the old
+  PR-event run will retain the rejected event ref and old workflow definition.
 - If publishing fails, inspect the workflow logs and correct publisher fields,
-  `npm` environment restrictions, scope ownership, or allowed actions. **Re-run
-  all jobs** on the original merged-release run after resolving the cause. This
+  scope ownership, or allowed actions through separately authorized maintainer
+  changes. **Re-run all jobs** on the corrected main-based run, or dispatch the
+  current workflow on main for that same merged release PR. This
   regenerates the publish plan against the registry; already published immutable
   versions are not published again. Do not rerun only the publish job with a stale
   plan or change package versions merely to retry authentication.
+
+To recover the already approved release PR #6 after the workflow fix is merged:
+
+```sh
+gh workflow run publish.yml --repo itoshimeji/satteri-links --ref main -f release_pr=6
+```
+
+The dispatch accepts only a PR number, not an arbitrary source SHA. It revalidates
+the merged release PR and main ancestry, then pins package source to
+`6ee5983506009f781c650cef2626529452ea5041`. It keeps card 0.5.0, mention 0.3.0, and
+preview 0.2.0, and rebuilds a registry-aware plan. Versions already published
+before a partial failure are excluded. A fully published release produces no
+publish candidates. If commit-to-PR association is temporarily unavailable on an
+automatic push, the same validated dispatch is the recovery route; do not bypass
+the resolver or the environment policy.
+
+Additional limitations:
+
 - A multi-package npm release is not atomic. A failure can leave preview live
   while a dependent remains unpublished. Check all package versions and GitHub
   releases after a retry; a failure after npm publication can also require a
@@ -178,3 +230,6 @@ supported; no token bypass is required.
 - [npm trusted publisher setup and allowed actions](https://docs.npmjs.com/trusted-publishers/)
 - [pnpm 11 native publishing](https://github.com/pnpm/pnpm.io/blob/main/blog/releases/11.0.md)
 - [GitHub workflow triggering and default-token restrictions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)
+- [GitHub push/dispatch event refs](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
+- [Environment deployment rules use GITHUB_REF](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
+- [OIDC environment subjects and immutable identity formats](https://docs.github.com/en/actions/reference/security/oidc)

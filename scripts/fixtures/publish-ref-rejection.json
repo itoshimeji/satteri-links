@@ -1,0 +1,7 @@
+{
+  "source": "https://github.com/itoshimeji/satteri-links/actions/runs/36714368439/job/109883799091",
+  "eventName": "pull_request",
+  "deniedRef": "refs/pull/6/merge",
+  "checkedOutReleaseSha": "6ee5983506009f781c650cef2626529452ea5041",
+  "annotation": "Branch \"refs/pull/6/merge\" is not allowed to deploy to npm due to environment protection rules."
+}

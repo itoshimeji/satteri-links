@@ -1,0 +1,59 @@
+{
+  "source": "https://github.com/itoshimeji/satteri-links/pull/6",
+  "pullRequest": {
+    "base": {
+      "ref": "main",
+      "repo": {
+        "full_name": "itoshimeji/satteri-links"
+      }
+    },
+    "head": {
+      "ref": "changeset-release/main",
+      "repo": {
+        "full_name": "itoshimeji/satteri-links"
+      }
+    },
+    "merge_commit_sha": "6ee5983506009f781c650cef2626529452ea5041",
+    "merged": true,
+    "merged_by": {
+      "login": "itoshimeji",
+      "type": "User"
+    },
+    "number": 6,
+    "state": "closed",
+    "user": {
+      "login": "github-actions[bot]",
+      "type": "Bot"
+    }
+  },
+  "files": [
+    {
+      "filename": ".changeset/initial-fetch-controls.md",
+      "status": "removed"
+    },
+    {
+      "filename": "packages/link-card/CHANGELOG.md",
+      "status": "added"
+    },
+    {
+      "filename": "packages/link-card/package.json",
+      "status": "modified"
+    },
+    {
+      "filename": "packages/link-mention/CHANGELOG.md",
+      "status": "added"
+    },
+    {
+      "filename": "packages/link-mention/package.json",
+      "status": "modified"
+    },
+    {
+      "filename": "packages/link-preview/CHANGELOG.md",
+      "status": "added"
+    },
+    {
+      "filename": "packages/link-preview/package.json",
+      "status": "modified"
+    }
+  ]
+}

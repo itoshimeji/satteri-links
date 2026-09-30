@@ -1,11 +1,16 @@
 name: Publish
 
-# A maintainer merging the release PR is the publication decision. Ordinary
-# main pushes, feature PRs, and this infrastructure PR cannot publish packages.
+# Resolve only a human-merged generated release PR. The actual execution ref
+# must be main for the npm environment; checkout alone cannot change it.
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_pr:
+        description: Merged Changesets release PR to recover (for example 6)
+        type: string
+        required: true
 
 permissions: {}
 
@@ -14,11 +19,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  pack:
+  resolve:
     if: >-
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref == 'changeset-release/main'
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'itoshimeji/satteri-links'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      release-sha: ${{ steps.release.outputs.release-sha }}
+      release-pr: ${{ steps.release.outputs.release-pr }}
+    steps:
+      # Read the resolver from the trusted workflow revision on main, never PR head.
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Resolve and authorize the immutable release commit
+        id: release
+        run: node scripts/resolve-release.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  pack:
+    needs: resolve
+    if: needs.resolve.outputs.release-sha != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -28,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ needs.resolve.outputs.release-sha }}
           persist-credentials: false
           fetch-depth: 0
       - uses: voidzero-dev/setup-vp@v1.17.0
@@ -65,17 +92,19 @@ jobs:
         run: node scripts/verify-release-pack.mjs "${{ runner.temp }}/release-pack"
 
   publish:
-    needs: pack
-    if: needs.pack.outputs.mode == 'publish'
+    needs: [resolve, pack]
+    if: needs.pack.outputs.mode == 'publish' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: npm
     permissions:
       contents: write
       id-token: write
     steps:
+      - name: Confirm the actual deployment ref
+        run: test "$GITHUB_REF" = 'refs/heads/main'
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ needs.resolve.outputs.release-sha }}
           persist-credentials: false
           fetch-depth: 0
       - uses: voidzero-dev/setup-vp@v1.17.0
