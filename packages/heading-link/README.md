@@ -47,7 +47,7 @@ In a larger pipeline, register your slug or heading-ID plugin before
 does not invent slugs, so IDs stay consistent with your table of contents and
 metadata.
 
-## 🌌 Astro setup
+## 👨‍🚀 Astro setup
 
 Astro's Sätteri processor provides the heading-ID plugin separately. Register
 the two plugins explicitly and keep the ID plugin first:

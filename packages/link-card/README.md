@@ -41,7 +41,7 @@ Only a bare HTTP or HTTPS URL in a root-level paragraph is converted. Explicit
 Markdown links, inline URLs, and URLs nested in lists or blockquotes are left
 unchanged.
 
-## 🌌 Astro setup
+## 👨‍🚀 Astro setup
 
 Install the Astro processor and configure it in `astro.config.mjs`:
 
