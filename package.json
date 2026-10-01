@@ -23,11 +23,11 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "11.18.0",
+      "version": "12.8.1",
       "onFail": "download"
     }
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   }
 }

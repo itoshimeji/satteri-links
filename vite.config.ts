@@ -32,7 +32,7 @@ export default defineConfig({
   },
   pack: {
     dts: {
-      tsgo: true,
+      generator: "tsgo",
     },
     exports: false,
   },

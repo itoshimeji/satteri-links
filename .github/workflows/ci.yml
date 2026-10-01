@@ -16,12 +16,13 @@ jobs:
         node-version: [22, 24, 26]
     steps:
       - uses: actions/checkout@v6
-      - uses: voidzero-dev/setup-vp@v1.17.0
+      - uses: voidzero-dev/setup-vp@v1.21.1
         with:
           node-version: ${{ matrix.node-version }}
           cache: true
       - uses: ./.github/actions/setup-release-pnpm
       - run: vp run check:workspace
       - run: vp run test:workspace
+      - run: vp run --filter satteri-links-demo test:deploy
       - run: vp run release:check
       - run: vp run release:pack
