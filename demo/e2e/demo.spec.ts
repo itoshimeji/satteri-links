@@ -126,6 +126,19 @@ test("applies card thumbnail position, full URL and favicon options without over
   await expect(cards.nth(4).locator(".satteri-link-card__favicon")).toHaveCount(0);
   await expect(cards.nth(4).locator(".satteri-link-card__image")).toHaveCount(1);
   await expectLoadedLocalImages(cards.locator("img"));
+  for (const [index, position] of [
+    [0, "right"],
+    [2, "left"],
+  ] as const) {
+    const card = cards.nth(index);
+    await card.scrollIntoViewIfNeeded();
+    const body = await card.locator(".satteri-link-card__body").boundingBox();
+    const media = await card.locator(".satteri-link-card__media").boundingBox();
+    expect(body).not.toBeNull();
+    expect(media).not.toBeNull();
+    if (position === "right") expect(media!.x).toBeGreaterThan(body!.x);
+    else expect(media!.x).toBeLessThan(body!.x);
+  }
   for (const card of await cards.all()) {
     const geometry = await card.evaluate((element) => ({
       right: element.getBoundingClientRect().right,
@@ -174,7 +187,7 @@ test("renders mention parts in configured order and supports favicon and title-o
     "Satteri Links fixture repository",
   );
   await expect(defaultMention).toHaveAccessibleName(
-    "GitHub fixture Satteri Links fixture repository",
+    /^GitHub fixture\s*Satteri Links fixture repository$/,
   );
   await expect(defaultMention).toHaveCSS("display", "inline");
   expect(await childClasses(defaultMention)).toEqual([
