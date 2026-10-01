@@ -348,8 +348,9 @@ describe("satteriLinkCard", () => {
       ],
     });
 
-    expect(fetch.mock.calls.map(([input]) => inputUrl(input))).toEqual([
-      "https://example.com/article",
+    const requestedUrls = fetch.mock.calls.map(([input]) => inputUrl(input));
+    expect(requestedUrls[0]).toBe("https://example.com/article");
+    expect(requestedUrls.slice(1).sort()).toEqual([
       "https://cdn.example.com/card.png",
       "https://cdn.example.com/favicon.ico",
     ]);
