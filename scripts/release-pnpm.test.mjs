@@ -146,6 +146,7 @@ void test("real Changesets publish-plan skips already published versions on part
     const name = decodeURIComponent(new URL(request.url, "http://localhost").pathname)
       .slice(1)
       .replace(/@\d.*$/, "");
+    assert.ok(packages.has(name), "The regression must only fetch package metadata");
     requests.add(name);
     if (published.has(name)) {
       const { manifest } = packages.get(name);
@@ -154,7 +155,17 @@ void test("real Changesets publish-plan skips already published versions on part
         JSON.stringify({
           name,
           "dist-tags": { latest: manifest.version },
-          versions: { [manifest.version]: { name, version: manifest.version } },
+          versions: {
+            [manifest.version]: {
+              name,
+              version: manifest.version,
+              // pnpm 12 ignores versions without a tarball in registry metadata.
+              // Keep the URL local; publish-plan must never download it.
+              dist: {
+                tarball: `http://${request.headers.host}/tarballs/${encodeURIComponent(name)}-${manifest.version}.tgz`,
+              },
+            },
+          },
         }),
       );
       return;
@@ -196,21 +207,33 @@ void test("real Changesets publish-plan skips already published versions on part
         .sort(([a], [b]) => a.localeCompare(b)),
     );
     const retryPlan = async () => {
+      requests.clear();
       await run(process.execPath, [cli, "publish-plan", "--output", output], {
         cwd: directory,
         timeout: 30_000,
       });
+      assert.deepEqual(
+        [...requests].sort((a, b) => a.localeCompare(b)),
+        [...packages.keys()].sort((a, b) => a.localeCompare(b)),
+        "Every retry must check the registry for all four packages",
+      );
       return JSON.parse(readFileSync(output, "utf8"))
         .plan.flat()
         .filter((entry) => entry.kind === "publish")
-        .map((entry) => entry.name)
-        .sort((a, b) => a.localeCompare(b));
+        .map((entry) => [entry.name, entry.version])
+        .sort(([a], [b]) => a.localeCompare(b));
     };
     // Model preview successfully published before card/mention failed. Heading
     // is already published and must remain outside the recovery plan as well.
     published.add("@itoshinji/link-preview");
     published.add("satteri-heading-link");
-    assert.deepEqual(await retryPlan(), ["satteri-link-card", "satteri-link-mention"]);
+    assert.deepEqual(
+      await retryPlan(),
+      ["satteri-link-card", "satteri-link-mention"].map((name) => [
+        name,
+        packages.get(name).manifest.version,
+      ]),
+    );
     published.add("satteri-link-card");
     published.add("satteri-link-mention");
     assert.deepEqual(await retryPlan(), []);

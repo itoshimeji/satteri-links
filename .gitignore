@@ -10,3 +10,6 @@ references
 .env
 .env.*
 !.env.example
+.vitest/
+.cloudflare/
+.wrangler/

@@ -122,7 +122,7 @@ will fail. Explicitly permit `npm publish`; do not substitute a long-lived token
 to work around that failure. A stage-only flow would require a different workflow
 and a second human approval on npm.
 
-Use GitHub-hosted runners, as specified here. The workflow pins pnpm 11.18.0
+Use GitHub-hosted runners, as specified here. The workflow pins pnpm 12.8.1
 through the existing `devEngines` configuration; its native publish implementation
 supports trusted publishing. After Vite+ installs dependencies, the shared
 `setup-release-pnpm` action reads that same pin and uses `pnpm/action-setup` to put
