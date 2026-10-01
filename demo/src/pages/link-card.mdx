@@ -1,13 +1,6 @@
-import { markdownToHtml } from "satteri";
-import { createFileSystemImageCacheStore, satteriLinkCard } from "satteri-link-card";
 import "satteri-link-card/preset.css";
 import DemoLayout from "../layouts/DemoLayout.astro";
-
-export async function renderCard(source, options = {}) {
-  return markdownToHtml(source, {
-    hastPlugins: [satteriLinkCard(options)],
-  });
-}
+import { e2eFailureUrl, isE2EBuild, renderCard } from "../lib/render-examples";
 
 export const cardSource = "https://github.com/ItoShimeji/satteri-links";
 export const astroSource = "https://astro.build/";
@@ -29,6 +22,7 @@ export const listLink = await renderCard("- https://astro.build/");
 export const multipleLinks = await renderCard(
   "https://github.com/ItoShimeji/satteri-links https://astro.build/",
 );
+export const failedMetadata = isE2EBuild ? await renderCard(e2eFailureUrl) : undefined;
 
 <DemoLayout
   title="satteri-link-card — Build-time link cards for Sätteri"
@@ -250,5 +244,12 @@ trusted Markdown.
 SVG images are not stored by the initial image cache. The package also does not
 currently provide offline builds, cache pruning, or concurrency limits across
 different URLs.
+
+{isE2EBuild && (
+
+  <div data-e2e="card-metadata-failure">
+    <Fragment set:html={failedMetadata.html} />
+  </div>
+)}
 
 </DemoLayout>

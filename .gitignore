@@ -13,3 +13,7 @@ references
 .vitest/
 .cloudflare/
 .wrangler/
+.e2e/
+dist-e2e/
+playwright-report/
+test-results/
