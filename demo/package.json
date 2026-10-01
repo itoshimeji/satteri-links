@@ -15,7 +15,7 @@
     "astro": "astro",
     "build:e2e": "node e2e/build.mjs",
     "test:e2e": "pnpm run build:e2e && playwright test",
-    "preview:e2e": "SATTERI_E2E=1 astro preview --config astro.e2e.config.mjs --host 127.0.0.1 --port 4173 --ignore-lock"
+    "preview:e2e": "astro preview --config astro.e2e.config.mjs --host 127.0.0.1 --port 4173 --ignore-lock"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.2.0",
