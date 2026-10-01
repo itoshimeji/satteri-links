@@ -11,7 +11,8 @@
     "changeset": "changeset",
     "release:version": "changeset version && vp install --lockfile-only && vp fmt",
     "release:check": "node --test scripts/release.test.mjs scripts/release-pnpm.test.mjs scripts/resolve-release.test.mjs",
-    "release:pack": "node scripts/verify-release-pack.mjs --pack"
+    "release:pack": "node scripts/verify-release-pack.mjs --pack",
+    "test:e2e": "pnpm --filter satteri-links-demo test:e2e"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",

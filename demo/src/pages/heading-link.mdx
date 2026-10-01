@@ -1,15 +1,6 @@
-import { satteriHeadingIdsPlugin } from "@astrojs/markdown-satteri";
-import { markdownToHtml } from "satteri";
-import { satteriHeadingLink } from "satteri-heading-link";
 import "satteri-heading-link/preset.css";
 import DemoLayout from "../layouts/DemoLayout.astro";
-
-export async function renderExample(source, options = {}) {
-  const result = await markdownToHtml(source, {
-    hastPlugins: [() => satteriHeadingIdsPlugin(), satteriHeadingLink(options)],
-  });
-  return result.html;
-}
+import { isE2EBuild, renderHeadingExample as renderExample } from "../lib/render-examples";
 
 export const hashIcon = await renderExample("## A compact hash icon", { icon: "#" });
 export const localized = await renderExample("## 日本語の見出し", {
@@ -25,6 +16,11 @@ export const selectedLevels = await renderExample(
     icon: "§",
   },
 );
+export const longHeading = isE2EBuild
+  ? await renderExample(
+      "### A deliberately long fixture heading keeps its permalink together with the last visible word across narrow viewport layouts finalword",
+    )
+  : undefined;
 
 <DemoLayout
   title="satteri-heading-link — Accessible heading permalinks for Sätteri"
@@ -192,5 +188,12 @@ semantics, link role, URL, and accessible name.
 
 Headings without IDs are skipped by default. The plugin does not generate slugs,
 copy text to the clipboard, or run browser JavaScript.
+
+{isE2EBuild && (
+
+  <div data-e2e="long-heading">
+    <Fragment set:html={longHeading} />
+  </div>
+)}
 
 </DemoLayout>

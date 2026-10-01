@@ -1,13 +1,6 @@
-import { markdownToHtml } from "satteri";
-import { createFileSystemImageCacheStore, satteriLinkMention } from "satteri-link-mention";
 import "satteri-link-mention/preset.css";
 import DemoLayout from "../layouts/DemoLayout.astro";
-
-export async function renderMention(source, options = {}) {
-  return markdownToHtml(source, {
-    hastPlugins: [satteriLinkMention(options)],
-  });
-}
+import { e2eFailureUrl, isE2EBuild, renderMention } from "../lib/render-examples";
 
 export const mentionSource = "This repository is [](https://github.com/ItoShimeji/satteri-links).";
 export const defaultMention = await renderMention(mentionSource);
@@ -30,6 +23,9 @@ export const authoredLink = await renderMention(
   "Read the [Sätteri documentation](https://satteri.bruits.org/).",
 );
 export const bareUrl = await renderMention("https://astro.build/");
+export const failedMetadata = isE2EBuild
+  ? await renderMention(`Unavailable metadata: [](${e2eFailureUrl}).`)
+  : undefined;
 
 <DemoLayout
   title="satteri-link-mention — Inline link mentions for Sätteri"
@@ -222,5 +218,12 @@ trusted Markdown.
 
 Missing favicon and site-name values are omitted. If metadata cannot be
 resolved, the empty link is left unchanged.
+
+{isE2EBuild && (
+
+  <div data-e2e="mention-metadata-failure">
+    <Fragment set:html={failedMetadata.html} />
+  </div>
+)}
 
 </DemoLayout>
