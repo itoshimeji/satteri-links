@@ -69,15 +69,10 @@ export function validatePackedPackage(manifest, files, expectedPackages = public
     }
   }
   if (expected.peerDependencies?.satteri) {
-    const version = readJson(
-      join(
-        root,
-        "packages",
-        expectedPackages.get(manifest.name).directory,
-        "node_modules/satteri/package.json",
-      ),
-    ).version;
-    assert.equal(manifest.peerDependencies.satteri, version, "Sätteri catalog was not resolved");
+    const workspace = readFileSync(join(root, "pnpm-workspace.yaml"), "utf8");
+    const match = workspace.match(/^  peer:\s*\n    satteri:\s*["']([^"']+)["']\s*$/m);
+    assert.ok(match, "Could not read the Sätteri peer catalog");
+    assert.equal(manifest.peerDependencies.satteri, match[1], "Sätteri peer catalog mismatch");
   }
   return `${manifest.name}@${manifest.version}`;
 }

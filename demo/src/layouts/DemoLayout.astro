@@ -3,64 +3,76 @@ import "../styles/global.css";
 import "satteri-heading-link/preset.css";
 
 interface Frontmatter {
-	title?: string;
-	description?: string;
-	robots?: string;
+  title?: string;
+  description?: string;
+  robots?: string;
 }
 
 interface Props {
-	title?: string;
-	description?: string;
-	robots?: string;
-	frontmatter?: Frontmatter;
+  title?: string;
+  description?: string;
+  robots?: string;
+  frontmatter?: Frontmatter;
 }
 
-const { frontmatter, title: propTitle, description: propDescription, robots: propRobots } = Astro.props;
+const {
+  frontmatter,
+  title: propTitle,
+  description: propDescription,
+  robots: propRobots,
+} = Astro.props;
 const title = propTitle ?? frontmatter?.title ?? "Satteri Links";
-const description = propDescription ?? frontmatter?.description ?? "Build-time link previews for Sätteri Markdown.";
+const description =
+  propDescription ?? frontmatter?.description ?? "Build-time link previews for Sätteri Markdown.";
 const robots = propRobots ?? frontmatter?.robots ?? "index, follow";
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const pathname = Astro.url.pathname;
 const documentTitle = title.startsWith("Satteri Links") ? title : `${title} · Satteri Links`;
 const links = [
-	{ href: "/", label: "Home" },
-	{ href: "/link-card/", label: "Link Card" },
-	{ href: "/heading-link/", label: "Heading Link" },
-	{ href: "/link-mention/", label: "Link Mention" },
+  { href: "/", label: "Home" },
+  { href: "/link-card/", label: "Link Card" },
+  { href: "/heading-link/", label: "Heading Link" },
+  { href: "/link-mention/", label: "Link Mention" },
 ];
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="description" content={description} />
-		<meta name="robots" content={robots} />
-		<link rel="icon" href="/favicon.png">
-		<link rel="canonical" href={canonicalURL} />
-		<link rel="sitemap" href="/sitemap-index.xml" />
-		<title>{documentTitle}</title>
-	</head>
-	<body>
-		<a class="skip-link" href="#main-content">Skip to content</a>
-		<header class="site-header">
-			<a class="site-title" href="/">Satteri Links</a>
-			<nav class="site-nav" aria-label="Main navigation">
-				{links.map((link) => (
-					<a href={link.href} aria-current={pathname === link.href ? "page" : undefined}>
-						{link.label}
-					</a>
-				))}
-			</nav>
-		</header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="icon" href="/favicon.png" />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <title>{documentTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">
+      Skip to content
+    </a>
+    <header class="site-header">
+      <a class="site-title" href="/">
+        Satteri Links
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        {links.map((link) => (
+          <a href={link.href} aria-current={pathname === link.href ? "page" : undefined}>
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    </header>
 
-		<main id="main-content" class="markdown-body">
-			<slot />
-		</main>
+    <main id="main-content" class="markdown-body">
+      <slot />
+    </main>
 
-		<footer class="site-footer">
-			<p>Built by <a href="https://hamazaki.me">Daichi Hamazaki</a>.</p>
-			<a href="https://github.com/ItoShimeji/satteri-links">GitHub repository</a>
-		</footer>
-	</body>
+    <footer class="site-footer">
+      <p>
+        Built by <a href="https://hamazaki.me">Daichi Hamazaki</a>.
+      </p>
+      <a href="https://github.com/ItoShimeji/satteri-links">GitHub repository</a>
+    </footer>
+  </body>
 </html>

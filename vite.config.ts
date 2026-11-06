@@ -42,5 +42,5 @@ export default defineConfig({
       typeCheck: true,
     },
   },
-  fmt: {},
+  fmt: { astro: true },
 });

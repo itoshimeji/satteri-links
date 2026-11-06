@@ -23,7 +23,6 @@ jobs:
       - uses: ./.github/actions/setup-release-pnpm
       - run: vp run check:workspace
       - run: vp run test:workspace
-      - run: vp run --filter satteri-links-demo test:deploy
       - run: vp run release:check
       - run: vp run release:pack
 

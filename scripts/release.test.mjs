@@ -21,12 +21,7 @@ function fixture(name = "satteri-link-card") {
       packages.get("@itoshinji/link-preview").manifest.version;
   }
   if (manifest.peerDependencies?.satteri) {
-    manifest.peerDependencies.satteri = JSON.parse(
-      readFileSync(
-        join(root, "packages", packages.get(name).directory, "node_modules/satteri/package.json"),
-        "utf8",
-      ),
-    ).version;
+    manifest.peerDependencies.satteri = ">=0.10.5";
   }
   const files = ["package.json", "README.md", "LICENSE", "dist/index.mjs", "dist/index.d.mts"];
   files.push(...manifest.files.filter((file) => file !== "dist"));
@@ -69,6 +64,12 @@ void test("rejects unresolved workspace/catalog ranges and stale preview depende
     manifest.dependencies["@itoshinji/link-preview"] = range;
     assert.throws(() => validatePackedPackage(manifest, files));
   }
+});
+
+void test("rejects an incorrect Sätteri peer range", () => {
+  const { manifest, files } = fixture();
+  manifest.peerDependencies.satteri = "0.11.6";
+  assert.throws(() => validatePackedPackage(manifest, files), /peer catalog mismatch/);
 });
 
 void test("rejects missing dependencies and altered export, type, or runtime metadata", () => {

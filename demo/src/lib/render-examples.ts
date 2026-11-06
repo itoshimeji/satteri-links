@@ -32,7 +32,7 @@ export async function renderHeadingExample(
   options: SatteriHeadingLinkOptions = {},
 ) {
   const result = await markdownToHtml(source, {
-    hastPlugins: [() => satteriHeadingIdsPlugin(), satteriHeadingLink(options)],
+    hastPlugins: [satteriHeadingIdsPlugin(), satteriHeadingLink(options)],
   });
   return result.html;
 }

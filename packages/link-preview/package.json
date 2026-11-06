@@ -43,7 +43,6 @@
     "parse5-sax-parser": "^8.0.0"
   },
   "devDependencies": {
-    "vite": "catalog:",
     "vite-plus": "catalog:"
   },
   "engines": {
