@@ -1,6 +1,6 @@
 {
   "name": "satteri-heading-link",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Accessible heading permalinks for Sätteri Markdown and Astro.",
   "keywords": [
     "accessibility",
